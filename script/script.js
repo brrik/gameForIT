@@ -1,68 +1,112 @@
+//const MainCanvas = document.getElementById("MainC");
+//const MainCTX = MainCanvas.getContext("2d");
+
+//MainCanvas.width = window.innerWidth - 30;
+//MainCanvas.height = window.innerHeight - 30;
+
+
+
+//const canvas = document.createElement("canvas");
+//const ctx = canvas.getContext("2d");
+
+//canvas.width = MainCanvas.width;
+//canvas.height = MainCanvas.height;
+
+//MainCTX.drawImage(canvas,0,0);
+
+
 const canvas = document.getElementById("MainC");
 const ctx = canvas.getContext("2d");
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+canvas.width = window.innerWidth - 30;
+canvas.height = window.innerHeight - 30;
 
-let cursorPoint = [];
+const enmRect = 50;
+let hitCount = 5;
 
-window.onload = function(){
-    let imagePath = "./src/start.jpg";
-    drawBG(canvas, imagePath);
+const imageBG = new Image();
+imageBG.src = "./src/start.jpg";
 
-    canvas.addEventListener("click", function (){
+const imageEnm = new Image();
+imageEnm.src = "./src/enm1.jpg";
 
-        let imagePath = "./src/start.jpg";
-        drawBG(canvas,imagePath);
-        let enmPath = "./src/enm1.jpg";
-        drawEnm(canvas, enmPath);
 
-        console.log(cursorPoint);
-    });
-    console.log(cursorPoint);
 
-}
+imageBG.addEventListener("load", function(){
+    drawBG(canvas);
+});
 
-canvas.addEventListener("click", function(e){
+let enmPoint = {};
+imageEnm.addEventListener("load", function(){
+    enmPoint = drawEnm(canvas);
+});
+
+canvas.addEventListener("click", e =>{
+    const canvas = document.getElementById("MainC");
+
+
     const rect = canvas.getBoundingClientRect();
-    let x = e.clientX - rect.left;
-    let y = e.clientY - rect.top;
-    if(x>cursorPoint[0] && y>cursorPoint[1] && x<cursorPoint[2] && y<cursorPoint[3]){
-        console.log("HIT");
+    point = {
+        x : e.clientX  - rect.left,
+        y : e.clientY  - rect.top
+    };
+
+
+    console.log(point);
+
+    const hit = (enmPoint.x <= point.x && point.x <= enmPoint.w) && 
+                (enmPoint.y <= point.y && point.y <= enmPoint.h);
+
+    console.log(hit)
+
+    if(hit){
+        console.log("HIT! Hit count is " + hitCount);
+        
+        hitCount = hitCount -1;
+        if(hitCount==0){
+            alert("Clear!!");
+            hitCount = 5;
+        };
+
+        drawBG(canvas,"./src/start.jpg");
+        enmPoint = drawEnm(canvas);
+    }else{
+        console.log("Miss");
     }
-})
+    console.log("in event listener  x: " + point.x + "/ y: " + point.y);
+
+});
 
 
-
-
-
-
-
-
-
-function drawBG(canvas,imagePath){
-    const imageBG = new Image();
-    imageBG.addEventListener("load",function (){
-        const ctx = canvas.getContext("2d");
-        ctx.drawImage(imageBG, 0, 0, canvas.width, canvas.height);
-    });
-    imageBG.src = imagePath;
+function drawBG(canvas){
+    console.log("***Draw Back Ground***");
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(imageBG, 0, 0, canvas.width, canvas.height);
 }
 
 
 
 
 
-function drawEnm(canvas,imagePath){
-    const imageEnm = new Image();
-    imageEnm.src = imagePath;
-    let enmX = Math.floor(Math.random() * (canvas.width - imageEnm.width));
-    let enmY = Math.floor(Math.random() * (canvas.height - imageEnm.height));
-    imageEnm.addEventListener("load",function (){
-        const ctx = canvas.getContext("2d");
-        ctx.drawImage(imageEnm, enmX, enmY);
-    });
-    cursorPoint[0] = enmX;
-    cursorPoint[1] = enmY;
-    cursorPoint[2] = enmX + imageEnm.width;
-    cursorPoint[3] = enmY + imageEnm.height;
+function drawEnm(canvas){
+    console.log("***Draw Enemy***");
+
+    let enmX = Math.floor(Math.random() * (canvas.width - enmRect));
+    let enmY = Math.floor(Math.random() * (canvas.height - enmRect));
+
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(imageEnm, enmX, enmY, enmRect, enmRect);
+    console.log("===ENM w/h===")
+    console.log(imageEnm.width);
+    console.log(imageEnm.height);
+    console.log("=============")
+
+    const enmPath = {
+        x : enmX,
+        y : enmY,
+        w : enmX + enmRect,
+        h : enmY + enmRect  
+    };
+    console.log("canvas h:" + canvas.height + " / canvas w:" + canvas.width);
+    console.log(enmPath);
+    return enmPath;
 }
