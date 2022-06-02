@@ -77,11 +77,53 @@ fillCanvas.width = canvas.width;
 fillCanvas.height = canvas.height;
 
 
-minorBattle("./src/enm1.jpg","./src/start.jpg");
+//minorBattle("./src/enm1.jpg","./src/start.jpg");
+
+
 
 //====================ここからタイトル画面処理==================
 function title(){
+    const titleImg = new Image();
+    titleImg.src = "./src/title.jpg";
 
+    const btnPos = {
+        x : 60,
+        y : canvas.height-100,
+        w : canvas.width-(60 * 2),
+        h : canvas.height/10
+    }
+
+    titleImg.addEventListener("load",function(){
+
+
+        titleCtx.drawImage(titleImg,0,0,titleCanvas.width,titleCanvas.height);
+        
+
+
+        titleCtx.fillStyle = "cyan";
+        titleCtx.fillRect(btnPos.x,btnPos.y,btnPos.w,btnPos.h);
+
+        ctx.drawImage(titleCanvas,0,0);
+        
+
+        canvas.addEventListener("click", e =>{
+            const rect = canvas.getBoundingClientRect();
+            point = {
+                x : e.clientX  - rect.left,
+                y : e.clientY  - rect.top
+            };
+
+            const hit = (btnPos.x <= point.x && point.x <= (btnPos.x + btnPos.w)) && 
+                        (btnPos.y <= point.y && point.y <= (btnPos.y + btnPos.h));
+            console.log(point);
+            console.log(btnPos);
+            if(hit){
+                console.log("Go to minor Battle");
+                minorBattle("./src/enm1.jpg","./src/start.jpg");
+            }
+            
+        });
+    });
 }
 //====================ここまでタイトル画面処理==================
 
@@ -106,7 +148,7 @@ function minorBattle(enmSrc, bgSrc){
 
 
     let battleClear = false;
-
+    mainProc();
 
     //クリック時の判定を追加
     canvas.addEventListener("click", e =>{
@@ -210,14 +252,9 @@ function minorBattle(enmSrc, bgSrc){
     }
 
 
-    function fillCanv(){
-        fillCtx.fillStyle = "rgb(255,0,0)";
-        fillCtx.fillRect(0,0,canvas.width,canvas.height);
-    }
-
-
-
     //モブの一定間隔ジャンプ処理
     const minorBattle = setInterval(mainProc,1500);
 }
 //===================ここまで雑魚戦時の処理====================
+
+title();
