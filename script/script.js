@@ -46,11 +46,29 @@ const ctx = canvas.getContext("2d");
 canvas.width = window.innerWidth - 30;
 canvas.height = window.innerHeight - 30;
 
+//タイトル画面用キャンバス
+const titleCanvas = document.createElement("canvas");
+const titleCtx = titleCanvas.getContext("2d");
+titleCanvas.width = canvas.width;
+titleCanvas.height = canvas.height;
+
+//巻物画面用キャンバス
+const scrollCanvas = document.createElement("canvas");
+const scrollCtx = scrollCanvas.getContext("2d");
+scrollCanvas.width = canvas.width;
+scrollCanvas.height = canvas.height;
+
 //雑魚戦用キャンバス
 const battleCanvas = document.createElement("canvas");
 const btlCtx = battleCanvas.getContext("2d");
 battleCanvas.width = canvas.width;
 battleCanvas.height = canvas.height;
+
+//一時描画用(一時的に利用するキャンバス、都度コンテンツ生成)
+const tempCanvas = document.createElement("canvas");
+const tempCtx = tempCanvas.getContext("2d");
+tempCanvas.width = canvas.width;
+tempCanvas.height = canvas.height;
 
 //動作検証用キャンバス
 const fillCanvas = document.createElement("canvas");
@@ -61,10 +79,14 @@ fillCanvas.height = canvas.height;
 
 minorBattle("./src/enm1.jpg","./src/start.jpg");
 
+//====================ここからタイトル画面処理==================
+function title(){
+
+}
+//====================ここまでタイトル画面処理==================
 
 
-
-//雑魚戦時の処理
+//====================ここから雑魚戦時の処理====================
 function minorBattle(enmSrc, bgSrc){
     imageEnm.src = enmSrc;
     imageBG.src = bgSrc;
@@ -198,3 +220,4 @@ function minorBattle(enmSrc, bgSrc){
     //モブの一定間隔ジャンプ処理
     const minorBattle = setInterval(mainProc,1500);
 }
+//===================ここまで雑魚戦時の処理====================
