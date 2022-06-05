@@ -173,9 +173,7 @@ function minorBattle(enmSrc, bgSrc){
     let btlMsg = "Battle Start!!"
     let fontWidth = btlCtx.measureText(btlMsg).width;
     btlCtx.fillText(btlMsg,(battleCanvas.width - fontWidth)/2, battleCanvas.height/2);
-
-
-    mainProc();
+    ctx.drawImage(battleCanvas,0,0);
 
     //一定時間ごとに繰り返す処理
     function mainProc(){
