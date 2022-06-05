@@ -20,7 +20,7 @@
 
 
 //定数の定義
-const loopTime = 1500; //モブがワープする時間間隔(ミリ秒：1000で1秒)
+const loopTime = 700; //モブがワープする時間間隔(ミリ秒：1000で1秒)
 const enmRect = 100; //敵モブの大きさ　初期設定100
 let hitCount = 5; //敵モブの体力　初期設定5
 const enmBarrier = 3; //敵モブのバリア動作率　初期設定3　＝　1/3でバリア解除状態
@@ -237,7 +237,7 @@ function minorBattle(enmSrc, bgSrc){
 
 
     //モブの一定間隔ジャンプ処理
-    minorBattleInterval = setInterval(mainProc,1500);
+    minorBattleInterval = setInterval(mainProc,loopTime);
     console.log("***********インターバル変数");
     console.log(minorBattleInterval);
 }
@@ -253,33 +253,43 @@ function checkClickEnm(e){
     //btlCtx.fillStyle="rgb(255,0,0)";
     //btlCtx.fillRect(point.x-25,point.y-25,50,50);
 
-    if(barrier <= 1){
     const hit = (enmPoint.x <= point.x && point.x <= enmPoint.w) && 
                 (enmPoint.y <= point.y && point.y <= enmPoint.h);
 
     console.log(hit)
 
     if(hit){
-        console.log("HIT! Hit count is " + hitCount);
-        
-        hitCount = hitCount -1;
-        if(hitCount==0){
-            alert("Clear!!");
-            hitCount = 5;
-            battleClear = true;
-        };
-        /*
-        drawBG(battleCanvas);
-        enmPoint = drawEnm(battleCanvas);
-        ctx.drawImage(battleCanvas,0,0);
-        */
+        if(barrier <= 1){
+            ctx.fillStyle="red";
+            ctx.font = '48px serif';
+            ctx.fillText("HIT!!", enmPoint.x, enmPoint.y);
+
+
+            console.log("HIT! Hit count is " + hitCount);
+            
+            hitCount = hitCount -1;
+            if(hitCount==0){
+                alert("Clear!!");
+                hitCount = 5;
+                battleClear = true;
+            };
+            /*
+            drawBG(battleCanvas);
+            enmPoint = drawEnm(battleCanvas);
+            ctx.drawImage(battleCanvas,0,0);
+            */
+        }else{
+            ctx.fillStyle="yellow";
+            ctx.font = '48px serif';
+            ctx.fillText('Blocked!', enmPoint.x, enmPoint.y);
+            console.log("Barriered!!");
+
+        }
     }else{
-        console.log("Miss");
-    }}else{
-        ctx.fillStyle="white";
+        ctx.fillStyle="blue";
         ctx.font = '48px serif';
-        ctx.fillText('防御された！', enmPoint.x, enmPoint.y);
-        console.log("Barriered!!");
+        ctx.fillText('MISS!!', enmPoint.x, enmPoint.y);
+        console.log("Miss");
     };
     console.log("in event listener  x: " + point.x + "/ y: " + point.y);
 
