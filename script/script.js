@@ -294,5 +294,5 @@ function returnTitle(){
 }
 
 
-
+//初回起動時のタイトル画面読み込み処理
 title();
