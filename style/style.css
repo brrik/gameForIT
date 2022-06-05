@@ -1,3 +1,7 @@
 #MainC{
     background: green;
 }
+
+#btnGroup{
+    display: flex;
+}

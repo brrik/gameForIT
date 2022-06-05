@@ -25,7 +25,9 @@ const enmRect = 100; //敵モブの大きさ　初期設定100
 let hitCount = 5; //敵モブの体力　初期設定5
 const enmBarrier = 3; //敵モブのバリア動作率　初期設定3　＝　1/3でバリア解除状態
 let barrier = 0; //バリア発動フラグ
-
+let enmPoint = {}; //雑魚敵の座標処理
+let battleClear = false; //雑魚戦のクリア処理フラグ
+let minorBattleInterval = 0;
 
 //画像読み込み用のバッファ　最初に読み込んでおくことで処理高速化と安定化
 const imageBG = new Image();
@@ -82,11 +84,20 @@ fillCanvas.height = canvas.height;
 
 
 //====================ここからタイトル画面処理==================
+let btnPos ={};
+
 function title(){
     const titleImg = new Image();
     titleImg.src = "./src/title.jpg";
+    const btnImg = new Image();
+    btnImg.src = ""
 
-    const btnPos = {
+
+    //x：定数
+    //y：下から100の位置、
+    //w：xと等間隔になるように
+    //h：キャンバスサイズの1/10
+    btnPos = {
         x : 60,
         y : canvas.height-100,
         w : canvas.width-(60 * 2),
@@ -95,105 +106,76 @@ function title(){
 
     titleImg.addEventListener("load",function(){
 
-
         titleCtx.drawImage(titleImg,0,0,titleCanvas.width,titleCanvas.height);
-        
 
+        //テスト用　ボタン素材できるまでは色つきのみで対応
+        titleCtx.fillStyle="rgb(100,100,100)";
+        titleCtx.fillRect(btnPos.x, btnPos.y, btnPos.w, btnPos.h);
 
-        titleCtx.fillStyle = "cyan";
-        titleCtx.fillRect(btnPos.x,btnPos.y,btnPos.w,btnPos.h);
+        //本番用　ボタン素材できたら置き換え
+        /*
+        titleCtx.drawImage(btnImg,btnPos.x,btnPos.y,btnPos.w,btnPos.h);
+        */
+
+       titleCtx.font = "italic bold 40px sans-serif";
+       let startMsg = "START!"; //ボタンに表示するメッセージ
+       titleCtx.fillStyle = "rgb(255,0,0)";
+       let fontWidth = titleCtx.measureText(startMsg).width;
+       let fontHeight = titleCtx.measureText(startMsg).height;
+       titleCtx.fillText(startMsg,(titleCanvas.width - fontWidth)/2, btnPos.y + (btnPos.h/2)+10);
+
 
         ctx.drawImage(titleCanvas,0,0);
         
 
-        canvas.addEventListener("click", e =>{
-            const rect = canvas.getBoundingClientRect();
-            point = {
-                x : e.clientX  - rect.left,
-                y : e.clientY  - rect.top
-            };
-
-            const hit = (btnPos.x <= point.x && point.x <= (btnPos.x + btnPos.w)) && 
-                        (btnPos.y <= point.y && point.y <= (btnPos.y + btnPos.h));
-            console.log(point);
-            console.log(btnPos);
-            if(hit){
-                console.log("Go to minor Battle");
-                minorBattle("./src/enm1.jpg","./src/start.jpg");
-            }
-            
-        });
+        canvas.addEventListener("click",clickCheckTitle);
     });
-}
+};
+
+function clickCheckTitle(e){
+    const rect = canvas.getBoundingClientRect();
+    point = {
+        x : e.clientX  - rect.left,
+        y : e.clientY  - rect.top
+    };
+
+    const hit = (btnPos.x <= point.x && point.x <= (btnPos.x + btnPos.w)) && 
+                (btnPos.y <= point.y && point.y <= (btnPos.y + btnPos.h));
+    console.log(point);
+    console.log(btnPos);
+    if(hit){
+        console.log("Go to minor Battle");
+        minorBattle("./src/enm1.jpg","./src/start.jpg");
+    }
+    
+};
 //====================ここまでタイトル画面処理==================
 
 
 //====================ここから雑魚戦時の処理====================
 function minorBattle(enmSrc, bgSrc){
+
+    canvas.removeEventListener("click",clickCheckTitle);
+    canvas.addEventListener("click",checkClickEnm);
     imageEnm.src = enmSrc;
     imageBG.src = bgSrc;
 
     minorBattleMusic.play();
     
 
+
     //起動時の画面読み込み処理
-    imageBG.addEventListener("load", function(){
-        drawBG(battleCanvas);
-    });
+    btlCtx.fillStyle = "rgb(0,0,0)";
+    btlCtx.fillRect(0,0,battleCanvas.width,battleCanvas.height);
+    btlCtx.fillStyle = "rgb(255,255,255)";
 
-    let enmPoint = {};
-    imageEnm.addEventListener("load", function(){
-        enmPoint = drawEnm(battleCanvas);
-    });
+    btlCtx.font = "italic bold 100px sans-serif";
+    let btlMsg = "Battle Start!!"
+    let fontWidth = btlCtx.measureText(btlMsg).width;
+    btlCtx.fillText(btlMsg,(battleCanvas.width - fontWidth)/2, battleCanvas.height/2);
 
 
-    let battleClear = false;
     mainProc();
-
-    //クリック時の判定を追加
-    canvas.addEventListener("click", e =>{
-        const rect = canvas.getBoundingClientRect();
-        point = {
-            x : e.clientX  - rect.left,
-            y : e.clientY  - rect.top
-        };
-
-        //btlCtx.fillStyle="rgb(255,0,0)";
-        //btlCtx.fillRect(point.x-25,point.y-25,50,50);
-
-        if(barrier <= 1){
-        const hit = (enmPoint.x <= point.x && point.x <= enmPoint.w) && 
-                    (enmPoint.y <= point.y && point.y <= enmPoint.h);
-
-        console.log(hit)
-
-        if(hit){
-            console.log("HIT! Hit count is " + hitCount);
-            
-            hitCount = hitCount -1;
-            if(hitCount==0){
-                alert("Clear!!");
-                hitCount = 5;
-                battleClear = true;
-            };
-
-            drawBG(battleCanvas);
-            enmPoint = drawEnm(battleCanvas);
-            ctx.drawImage(battleCanvas,0,0);
-        }else{
-            console.log("Miss");
-        }}else{
-            ctx.fillStyle="white";
-            ctx.font = '48px serif';
-            ctx.fillText('防御された！', enmPoint.x, enmPoint.y);
-            console.log("Barriered!!");
-        };
-        console.log("in event listener  x: " + point.x + "/ y: " + point.y);
-
-    });
-
-
-
 
     //一定時間ごとに繰り返す処理
     function mainProc(){
@@ -207,7 +189,11 @@ function minorBattle(enmSrc, bgSrc){
         ctx.drawImage(battleCanvas,0,0);
         console.log(battleClear);
         if(battleClear == true){
-            clearInterval(minorBattle);
+            clearInterval(minorBattleInterval);
+            battleClear = false;
+            canvas.removeEventListener("click", checkClickEnm);
+            canvas.addEventListener("click", clickCheckTitle);
+            title();
         }
     }
 
@@ -253,8 +239,62 @@ function minorBattle(enmSrc, bgSrc){
 
 
     //モブの一定間隔ジャンプ処理
-    const minorBattle = setInterval(mainProc,1500);
+    minorBattleInterval = setInterval(mainProc,1500);
+    console.log("***********インターバル変数");
+    console.log(minorBattleInterval);
 }
+
+//クリック時の判定を追加
+function checkClickEnm(e){
+    const rect = canvas.getBoundingClientRect();
+    point = {
+        x : e.clientX  - rect.left,
+        y : e.clientY  - rect.top
+    };
+
+    //btlCtx.fillStyle="rgb(255,0,0)";
+    //btlCtx.fillRect(point.x-25,point.y-25,50,50);
+
+    if(barrier <= 1){
+    const hit = (enmPoint.x <= point.x && point.x <= enmPoint.w) && 
+                (enmPoint.y <= point.y && point.y <= enmPoint.h);
+
+    console.log(hit)
+
+    if(hit){
+        console.log("HIT! Hit count is " + hitCount);
+        
+        hitCount = hitCount -1;
+        if(hitCount==0){
+            alert("Clear!!");
+            hitCount = 5;
+            battleClear = true;
+        };
+        /*
+        drawBG(battleCanvas);
+        enmPoint = drawEnm(battleCanvas);
+        ctx.drawImage(battleCanvas,0,0);
+        */
+    }else{
+        console.log("Miss");
+    }}else{
+        ctx.fillStyle="white";
+        ctx.font = '48px serif';
+        ctx.fillText('防御された！', enmPoint.x, enmPoint.y);
+        console.log("Barriered!!");
+    };
+    console.log("in event listener  x: " + point.x + "/ y: " + point.y);
+
+};
 //===================ここまで雑魚戦時の処理====================
+
+function returnTitle(){
+    clearInterval(minorBattleInterval);
+    canvas.removeEventListener("click",checkClickEnm)
+    canvas.addEventListener("click",clickCheckTitle);
+    ctx.drawImage(titleCanvas,0,0);
+}
+
+
 
 title();
