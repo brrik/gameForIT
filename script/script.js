@@ -22,7 +22,8 @@
 //定数の定義
 const loopTime = 700; //モブがワープする時間間隔(ミリ秒：1000で1秒)
 const enmRect = 100; //敵モブの大きさ　初期設定100
-let hitCount = 5; //敵モブの体力　初期設定5
+let hitCountFirst = 5 //敵モブの体力　初期設定5
+let hitCount = hitCountFirst; //敵モブの現在の体力
 const enmBarrier = 3; //敵モブのバリア動作率　初期設定3　＝　1/3でバリア解除状態
 let barrier = 0; //バリア発動フラグ
 let enmPoint = {}; //雑魚敵の座標処理
@@ -32,6 +33,8 @@ let minorBattleInterval = 0;
 //画像読み込み用のバッファ　最初に読み込んでおくことで処理高速化と安定化
 const imageBG = new Image();
 const imageEnm = new Image();
+const imageBoxOpen = new Image();
+const imageBoxClose = new Image();
 
 //音楽読み込み用のバッファ　最初に読み込んでおくことで処理高速化と安定化
 const titleMusic = new Audio(""); titleMusic.loop = true;
@@ -175,6 +178,10 @@ function minorBattle(enmSrc, bgSrc){
     btlCtx.fillText(btlMsg,(battleCanvas.width - fontWidth)/2, battleCanvas.height/2);
     ctx.drawImage(battleCanvas,0,0);
 
+
+
+
+
     //一定時間ごとに繰り返す処理
     function mainProc(){
         console.log("before mainProc EnmPoint");
@@ -191,18 +198,8 @@ function minorBattle(enmSrc, bgSrc){
             battleClear = false;
             canvas.removeEventListener("click", checkClickEnm);
             canvas.addEventListener("click", clickCheckTitle);
-            title();
+            openScroll();
         }
-    }
-
-
-
-
-    //背景の処理
-    function drawBG(battleCanvas){
-        console.log("***Draw Back Ground***");
-        const btlCtx = battleCanvas.getContext("2d");
-        btlCtx.drawImage(imageBG, 0, 0, battleCanvas.width, battleCanvas.height);
     }
 
     //敵画像の処理
@@ -270,7 +267,7 @@ function checkClickEnm(e){
             hitCount = hitCount -1;
             if(hitCount==0){
                 alert("Clear!!");
-                hitCount = 5;
+                hitCount = hitCountFirst;
                 battleClear = true;
             };
             /*
@@ -295,6 +292,47 @@ function checkClickEnm(e){
 
 };
 //===================ここまで雑魚戦時の処理====================
+
+//===================ここから背景の処理====================
+    function drawBG(battleCanvas){
+        console.log("***Draw Back Ground***");
+        const btlCtx = battleCanvas.getContext("2d");
+        btlCtx.drawImage(imageBG, 0, 0, battleCanvas.width, battleCanvas.height);
+    }
+//===================ここまで背景の処理====================
+
+
+//====================ここから巻物の処理====================
+
+function openScroll(){
+    console.log("Load imgBoxClose")
+    canvas.removeEventListener("click",checkClickEnm)
+    canvas.addEventListener("click",openBox);
+
+    imageBoxOpen.src = "./src/box_opened.png"
+    imageBoxClose.src = "./src/box_closed.png"
+
+    imageBoxClose.onload = function(){
+    drawBG(scrollCanvas);
+    scrollCtx.drawImage(imageBoxClose, (canvas.width - imageBoxClose.width) / 2, (canvas.height - imageBoxClose.height) / 2);
+    ctx.drawImage(scrollCanvas, 0, 0);
+    };
+
+    function openBox(){
+        drawBG(scrollCanvas);
+        scrollCtx.drawImage(imageBoxOpen, (canvas.width - imageBoxClose.width) / 2, (canvas.height - imageBoxClose.height) / 2);
+        ctx.drawImage(scrollCanvas, 0, 0);
+        canvas.removeEventListener("click",openBox)
+        canvas.addEventListener("click",returnTitle);
+    }
+
+}
+
+
+
+//====================ここまで巻物の処理====================
+
+
 
 function returnTitle(){
     clearInterval(minorBattleInterval);
