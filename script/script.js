@@ -342,5 +342,23 @@ function returnTitle(){
 }
 
 
+function alt(num){
+    alert("Alert:"+num);
+}
+
+function scrollOpenScreen(){
+    let scrDiv = document.getElementById("scroll");
+    let cvDiv = document.getElementById("showScreen");
+    let scrDisp = scrDiv.style.display;
+
+    if(scrDisp=="block"){
+        scrDiv.style.display = "none";
+        cvDiv.style.display = "block";
+    }else{
+        scrDiv.style.display = "block";
+        cvDiv.style.display = "none";
+    }
+}
+
 //初回起動時のタイトル画面読み込み処理
 title();
