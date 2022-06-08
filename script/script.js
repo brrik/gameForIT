@@ -342,12 +342,19 @@ function returnTitle(){
 }
 
 
-function alt(num){
-    alert("Alert:"+num);
+function stageScroll(num){
+    let stage = "stage"+num;
+    let scrollMain = document.getElementById("stageScroll");
+    let thisScroll = document.getElementById(stage);
+    let thisDisp = thisScroll.style.display;
+
+    if(thisScroll == "block"){
+        scr
+    }
 }
 
 function scrollOpenScreen(){
-    let scrDiv = document.getElementById("scroll");
+    let scrDiv = document.getElementById("stageScroll");
     let cvDiv = document.getElementById("showScreen");
     let scrDisp = scrDiv.style.display;
 
