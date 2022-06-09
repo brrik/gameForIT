@@ -21,58 +21,59 @@
         <h3></h3>
         <h1></h1>
         <p></p>
-        <button >戻る</button>
+        <button onclick="backScr('scrollShow','chpScroll')">戻る</button>
     </div>
 
 
     <!--巻物全体のリスト-->
-    <div id="stageScroll">
+    <div id="chpScroll">
         <table>
             <tr>
-                <td onclick="test();">Stage 1</td>
-                <td onclick="test();">Stage 2</td>
-                <td onclick="test();">Stage 3</td>
+                <td onclick="scrChpSelect(1);">Stage 1</td>
+                <td onclick="scrChpSelect(2);">Stage 2</td>
+                <td onclick="scrChpSelect(3);">Stage 3</td>
             </tr>
             <tr>
-                <td onclick="test();">Stage 4</td>
-                <td onclick="test();">Stage 5</td>
-                <td onclick="test();">Stage 6</td>
+                <td onclick="scrChpSelect(4);">Stage 4</td>
+                <td onclick="scrChpSelect(5);">Stage 5</td>
+                <td onclick="scrChpSelect(6);">Stage 6</td>
             </tr>
             <tr>
-                <td onclick="test();">Stage 7</td>
-                <td onclick="test();">Stage 8</td>
-                <td onclick="test();">Stage 9</td>
+                <td onclick="scrChpSelect(7);">Stage 7</td>
+                <td onclick="scrChpSelect(8);">Stage 8</td>
+                <td onclick="scrChpSelect(9);">Stage 9</td>
             </tr>
             <tr>
-                <td colspan="3" onclick="test();">Stage 10</td>
+                <td colspan="3" onclick="scrChpSelect(10);">Stage 10</td>
             </tr>
         </table>
-        <button onclick="backScr('stageScroll','showScreen')">戻る</button>
+        <button onclick="backScr('chpScroll','showScreen')">戻る</button>
     </div>
 
 
     <!--各章の巻物リスト-->
-    <div id="stage1" class="scrollList">
+    <div id="chp1" class="stageList">
         <table>
             <tr>
-                <td>Scroll 1</td>
-                <td>Scroll 2</td>
-                <td>Scroll 3</td>
+                <td onclick="showScroll('1-1')">Scroll 1</td>
+                <td onclick="showScroll('1-2')">Scroll 2</td>
+                <td onclick="showScroll('1-3')">Scroll 3</td>
             </tr>
             <tr>
-                <td>Scroll 4</td>
-                <td>Scroll 5</td>
-                <td>Scroll 6</td>
+                <td onclick="showScroll('1-4')">Scroll 4</td>
+                <td onclick="showScroll('1-5')">Scroll 5</td>
+                <td onclick="showScroll('1-6')">Scroll 6</td>
             </tr>
             <tr>
-                <td>Scroll 7</td>
-                <td>Scroll 8</td>
-                <td>Scroll 9</td>
+                <td onclick="showScroll('1-7')">Scroll 7</td>
+                <td onclick="showScroll('1-8')">Scroll 8</td>
+                <td onclick="showScroll('1-9')">Scroll 9</td>
             </tr>
             <tr>
-                <td colspan="3">Scroll 10</td>
+                <td colspan="3" onclick="showScroll('1-10')">Scroll 10</td>
             </tr>
         </table>
+        <button onclick="backScr('chp1','chpScroll')">戻る</button>
     </div>
 
 
@@ -85,14 +86,15 @@
         <table>
             <tr>
                 <td class="stageTag">1-1</td>
-                <td class="contentHeader">ここに巻物タイトル</td>
-                <td class="content">ここに巻物内容</td>
+                <td class="contentHeader">ここに巻物タイトル1-1</td>
+                <td class="content">ここに巻物内容1-1</td>
             </tr>
         </table>
         <table>
             <tr>
                 <td class="stageTag">1-2</td>
-                <td class="content">hogehogehoge2</td>
+                <td class="contentHeader">ここに巻物タイトル1-2</td>
+                <td class="content">ここに巻物内容1-2</td>
             </tr>
         </table>
     </div>

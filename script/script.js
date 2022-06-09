@@ -330,31 +330,44 @@ function openScroll(){
 
 
 
-//====================ここまで巻物の処理====================
+//巻物の情報を取得するやつ
+function showScroll(stage){
+    let show = document.getElementById("scrollShow");
+    let a = document.getElementById("scrList");
+    let b = a.getElementsByTagName("td");
+    for(i=0; i<b.length; i++){
+        if(b[i].innerText==stage){
+            console.log(b[i].innerText);
+            console.log(b[i+1].innerText);
+            console.log(b[i+2].innerText);
 
+            show.getElementsByTagName("h3")[0].innerText = b[i].innerText;
+            show.getElementsByTagName("h1")[0].innerText = b[i+1].innerText;
+            show.getElementsByTagName("p")[0].innerText = b[i+2].innerHTML;
 
+            let x = document.getElementsByClassName("stageList");
+            for(j=0;j<x.length;j++){
+                x[j].style.display = "none";
+            }
 
-function returnTitle(){
-    clearInterval(minorBattleInterval);
-    canvas.removeEventListener("click",checkClickEnm)
-    canvas.addEventListener("click",clickCheckTitle);
-    ctx.drawImage(titleCanvas,0,0);
-}
-
-
-function stageScroll(num){
-    let stage = "stage"+num;
-    let scrollMain = document.getElementById("stageScroll");
-    let thisScroll = document.getElementById(stage);
-    let thisDisp = thisScroll.style.display;
-
-    if(thisScroll == "block"){
-        scr
+            show.style.display = "block";
+            break;
+        }
     }
 }
 
+
+function scrChpSelect(num){
+    let scrollMain = document.getElementById("chpScroll");
+    let thisScroll = document.getElementsByClassName("stageList");
+
+    scrollMain.style.display = "none";
+    thisScroll[num-1].style.display = "block";
+}
+
+
 function scrollOpenScreen(){
-    let scrDiv = document.getElementById("stageScroll");
+    let scrDiv = document.getElementById("chpScroll");
     let cvDiv = document.getElementById("showScreen");
     let scrDisp = scrDiv.style.display;
 
@@ -367,34 +380,40 @@ function scrollOpenScreen(){
     }
 }
 
-//初回起動時のタイトル画面読み込み処理
-title();
+//====================ここまで巻物の処理====================
 
-//巻物の情報を取得するやつ
-function showScroll(stage){
-    let show = document.getElementById("scrollShow");
-    let a = document.getElementById("scrList");
-    let b = a.getElementsByTagName("td");
-    for(i=0; i<=b.length; i++){
-        if(b[i].innerText==stage){
-            show.getElementsByTagName("h3").innerText = b[i].innerText;
-            show.getElementsByTagName("h1").innerText = b[i+1].innerText;
-            show.getElementsByTagName("p").innerText = b[i+2].innerHTML;
 
-            document.getElementById("stageScroll").style.display = "none";
-
-            let x = document.getElementsByClassName("scrollList")
-            for(j=0; j<= x.length; j++){
-                
-            }
-        }
-    }
+//タイトル画面に戻る汎用処理
+function returnTitle(){
+    clearInterval(minorBattleInterval);
+    canvas.removeEventListener("click",checkClickEnm)
+    canvas.addEventListener("click",clickCheckTitle);
+    ctx.drawImage(titleCanvas,0,0);
+    resetAllDiv();
 }
 
+
+//前の画面に戻る汎用処理
 function backScr(beforeScr, afterScr){
     let bef = document.getElementById(beforeScr);
     let aft = document.getElementById(afterScr);
     bef.style.display = "none";
     aft.style.display = "block";
-
 }
+
+//全画面初期化の汎用処理
+function resetAllDiv(){
+    let a = document.getElementsByTagName("div")
+    for(i=0; i<a.length; i++){
+        a[i].style.display = "none";
+    }
+    let x = document.getElementById("btnGroup");
+    x.style.display = "flex";
+
+    x = document.getElementById("showScreen");
+    x.style.display = "block";
+}
+
+//初回起動時のタイトル画面読み込み処理
+title();
+
