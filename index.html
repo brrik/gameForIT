@@ -16,6 +16,16 @@
             </tr>
         </table>
     </div>
+
+    <div id="scrollShow">
+        <h3></h3>
+        <h1></h1>
+        <p></p>
+        <button >戻る</button>
+    </div>
+
+
+    <!--巻物全体のリスト-->
     <div id="stageScroll">
         <table>
             <tr>
@@ -34,10 +44,14 @@
                 <td onclick="test();">Stage 9</td>
             </tr>
             <tr>
-                <td colspan="3">Stage 10</td>
+                <td colspan="3" onclick="test();">Stage 10</td>
             </tr>
         </table>
+        <button onclick="backScr('stageScroll','showScreen')">戻る</button>
     </div>
+
+
+    <!--各章の巻物リスト-->
     <div id="stage1" class="scrollList">
         <table>
             <tr>
@@ -60,13 +74,28 @@
             </tr>
         </table>
     </div>
+
+
     <div id="showScreen">
         <canvas id="MainC"></canvas>
     </div>
 
-<div id="discList"> <!--ここのDIVに巻物の内容を記載する-->
 
-</div>
+    <div id="scrList"> <!--ここのDIVに巻物の内容を記載する-->
+        <table>
+            <tr>
+                <td class="stageTag">1-1</td>
+                <td class="contentHeader">ここに巻物タイトル</td>
+                <td class="content">ここに巻物内容</td>
+            </tr>
+        </table>
+        <table>
+            <tr>
+                <td class="stageTag">1-2</td>
+                <td class="content">hogehogehoge2</td>
+            </tr>
+        </table>
+    </div>
 
 
 

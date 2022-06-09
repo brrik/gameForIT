@@ -29,3 +29,11 @@
 .scrollList{
     display: none;
 }
+
+#scrList{
+    display: none;
+}
+
+#scrollShow{
+    display: none;
+}

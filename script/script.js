@@ -369,3 +369,32 @@ function scrollOpenScreen(){
 
 //初回起動時のタイトル画面読み込み処理
 title();
+
+//巻物の情報を取得するやつ
+function showScroll(stage){
+    let show = document.getElementById("scrollShow");
+    let a = document.getElementById("scrList");
+    let b = a.getElementsByTagName("td");
+    for(i=0; i<=b.length; i++){
+        if(b[i].innerText==stage){
+            show.getElementsByTagName("h3").innerText = b[i].innerText;
+            show.getElementsByTagName("h1").innerText = b[i+1].innerText;
+            show.getElementsByTagName("p").innerText = b[i+2].innerHTML;
+
+            document.getElementById("stageScroll").style.display = "none";
+
+            let x = document.getElementsByClassName("scrollList")
+            for(j=0; j<= x.length; j++){
+                
+            }
+        }
+    }
+}
+
+function backScr(beforeScr, afterScr){
+    let bef = document.getElementById(beforeScr);
+    let aft = document.getElementById(afterScr);
+    bef.style.display = "none";
+    aft.style.display = "block";
+
+}
