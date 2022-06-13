@@ -20,7 +20,7 @@
 
 
 //定数の定義
-const loopTime = 700; //モブがワープする時間間隔(ミリ秒：1000で1秒)
+const loopTime = 1000; //モブがワープする時間間隔(ミリ秒：1000で1秒)
 const enmRect = 100; //敵モブの大きさ　初期設定100
 let hitCountFirst = 5 //敵モブの体力　初期設定5
 let hitCount = hitCountFirst; //敵モブの現在の体力
@@ -35,6 +35,7 @@ const imageBG = new Image();
 const imageEnm = new Image();
 const imageBoxOpen = new Image();
 const imageBoxClose = new Image();
+const imageCloud = new Image();
 
 //音楽読み込み用のバッファ　最初に読み込んでおくことで処理高速化と安定化
 const titleMusic = new Audio(""); titleMusic.loop = true;
@@ -148,7 +149,8 @@ function clickCheckTitle(e){
     console.log(btnPos);
     if(hit){
         console.log("Go to minor Battle");
-        minorBattle("./src/enm1.jpg","./src/start.jpg");
+        walk();
+        //encountEnm();
     }
     
 };
@@ -156,6 +158,205 @@ function clickCheckTitle(e){
 
 
 //====================ここから雑魚戦時の処理====================
+
+
+//歩く時の揺れる処理
+function walk(){
+    console.log("walking.....")
+    canvas.removeEventListener("click",clickCheckTitle);
+
+    //起動時の画面読み込み処理
+    btlCtx.fillStyle = "rgb(0,0,0)";
+    btlCtx.fillRect(0,0,battleCanvas.width,battleCanvas.height);
+    btlCtx.fillStyle = "rgb(255,255,255)";
+
+    //バトルスタートの表示
+    btlCtx.font = "italic bold 100px sans-serif";
+    let btlMsg = "Battle Start!!"
+    let fontWidth = btlCtx.measureText(btlMsg).width;
+    btlCtx.fillText(btlMsg,(battleCanvas.width - fontWidth)/2, battleCanvas.height/2);
+    ctx.drawImage(battleCanvas,0,0)
+
+    imageBG.src = "./src/start.jpg"
+
+    //バトルスタートをX秒間表示し、バトルへ
+    setTimeout(() => {
+
+        btlCtx.drawImage(imageBG,0,0,battleCanvas.width,battleCanvas.height);
+
+        //揺れる回数を決定
+        let times = Math.floor(Math.random() * 3)+1;
+        console.log("times : "+times);
+        btlCtx.drawImage(imageBG,0,0,battleCanvas.width,battleCanvas.height)
+        let thisTime = 0
+
+
+
+        let allWalk = setInterval(() => {
+            
+            let yStart = 0;
+            let yEnd = 50
+            let walkDown = setInterval(function(){
+                //沈み込む処理
+                console.log("btlCtx y: "+yStart);
+
+                ctx.fillStyle = "rgb(0,0,0)";
+                ctx.fillRect(0,0,canvas.width,canvas.height);
+                ctx.drawImage(battleCanvas,0,yStart);
+                yStart++;
+
+
+                if(yStart >= yEnd){
+                    //立ち上がる処理
+                    clearInterval(walkDown);
+                    let walkUp = setInterval(function(){
+                        console.log("btlCtx y: "+yStart);
+
+                        ctx.fillStyle = "rgb(0,0,0)";
+                        ctx.fillRect(0,0,canvas.width,canvas.height);
+                        ctx.drawImage(battleCanvas,0,yStart);
+                        yStart--;
+
+
+                        if(yStart <= 0){
+                            //X秒経過後、インターバル解除
+                            clearInterval(walkUp);
+                            thisTime++;
+                        };
+                    },5)
+                    
+                };
+            },5)
+            if(thisTime>=times){
+                //規定回数超えたら次の処理へ
+                clearInterval(allWalk);
+                setTimeout(() => {
+                    //一応最後の立ち上がりを待つために1秒保留
+                    encountEnm();
+                }, 1000);
+            }
+        }, 1000);
+    }, (2000));
+}
+
+
+//雲から敵が現れる処理
+async function encountEnm(){
+    imageCloud.src = "./src/cloud.png"
+    let imgMax = 0
+    if(canvas.height > canvas.width){
+        imgMax = Math.floor(canvas.width/4);
+    }else{
+        imgMax = Math.floor(canvas.height/4);
+    }
+
+    imageBG.src = "./src/start.jpg"
+
+    const waitSec = 5;
+
+    let clPosSet = [];
+    let clPosOne = Math.floor(imgMax/3);
+    for(i=1;i<=3;i++){
+        console.log(i);
+        clPosSet.push(clPosOne * i);
+    };
+    console.log("clposset is...");
+    console.log(clPosSet);
+    console.log("----------------")
+
+
+    let imgSize = 100;
+    let posX = (canvas.width/2)-(imgSize/2)
+    let posY = (canvas.height/2)-(imgSize/2)
+
+    let bln = 0;
+
+    for(i=0;i<=imgMax;i++){
+
+        if(i==clPosSet[0] && bln==0){
+            console.log("clpos 0 : " + clPosSet[0])
+            bln++;
+            for(j=0;j<50;j++){
+                imgSize--;
+                posX = (canvas.width/2)-(imgSize/2)
+                posY = (canvas.height/2)-(imgSize/2)
+
+                drawBG(battleCanvas);
+                btlCtx.drawImage(imageCloud,posX,posY,imgSize,imgSize);
+                ctx.drawImage(battleCanvas,0,0);
+                await sleep(waitSec);
+            }
+        }else if(i==clPosSet[1] && bln==1){
+            console.log("clpos 1 : " + clPosSet[1])
+            bln++;
+            for(j=0;j<50;j++){
+                imgSize--;
+                posX = (canvas.width/2)-(imgSize/2)
+                posY = (canvas.height/2)-(imgSize/2)
+        
+                drawBG(battleCanvas);
+                btlCtx.drawImage(imageCloud,posX,posY,imgSize,imgSize);
+                ctx.drawImage(battleCanvas,0,0);
+                await sleep(waitSec);
+            }
+        }else if(i==clPosSet[2] && bln==2){
+            console.log("clpos 2 : " + clPosSet[2])
+            bln++
+            for(j=0;j<50;j++){
+                imgSize--;
+                posX = (canvas.width/2)-(imgSize/2)
+                posY = (canvas.height/2)-(imgSize/2)
+        
+                drawBG(battleCanvas);
+                btlCtx.drawImage(imageCloud,posX,posY,imgSize,imgSize);
+                ctx.drawImage(battleCanvas,0,0);
+                await sleep(waitSec);
+            }
+        }else{
+            imgSize +=2;
+        }
+        posX = (canvas.width/2)-(imgSize/2)
+        posY = (canvas.height/2)-(imgSize/2)
+
+        drawBG(battleCanvas);
+        btlCtx.drawImage(imageCloud,posX,posY,imgSize,imgSize);
+        ctx.drawImage(battleCanvas,0,0);
+        await sleep(waitSec);
+    };
+
+
+
+    for(i=10;i>=0;i--){
+        console.log("alpha = "+i)
+        ctx.globalAlpha = i * 0.1;
+        drawBG(canvas);
+        imageEnm.src = "./src/enm1.jpg"
+        ctx.drawImage(imageEnm,(battleCanvas.width/2)-(enmRect/2),(battleCanvas.height/2)-(enmRect/2),enmRect,enmRect);
+        ctx.drawImage(battleCanvas,0,0);
+        await sleep(10);
+    }
+    ctx.globalAlpha=1;
+
+    for(i=0;i<=4;i++){
+
+        if(i%2==0){
+            drawBG(battleCanvas)
+            btlCtx.drawImage(imageEnm,(battleCanvas.width/2)-(enmRect/2)-10,(battleCanvas.height/2)-(enmRect/2),enmRect,enmRect);
+        }else{
+            drawBG(battleCanvas)
+            btlCtx.drawImage(imageEnm,(battleCanvas.width/2)-(enmRect/2)+10,(battleCanvas.height/2)-(enmRect/2),enmRect,enmRect);   
+        }
+        ctx.drawImage(battleCanvas,0,0);
+        await sleep(100);
+    }
+
+    //念のため1秒待つ
+    await sleep(1000);
+
+    minorBattle("./src/enm1.jpg","./src/start.jpg");
+}
+
+
 function minorBattle(enmSrc, bgSrc){
 
     canvas.removeEventListener("click",clickCheckTitle);
@@ -165,21 +366,6 @@ function minorBattle(enmSrc, bgSrc){
 
     minorBattleMusic.play();
     
-
-
-    //起動時の画面読み込み処理
-    btlCtx.fillStyle = "rgb(0,0,0)";
-    btlCtx.fillRect(0,0,battleCanvas.width,battleCanvas.height);
-    btlCtx.fillStyle = "rgb(255,255,255)";
-
-    btlCtx.font = "italic bold 100px sans-serif";
-    let btlMsg = "Battle Start!!"
-    let fontWidth = btlCtx.measureText(btlMsg).width;
-    btlCtx.fillText(btlMsg,(battleCanvas.width - fontWidth)/2, battleCanvas.height/2);
-    ctx.drawImage(battleCanvas,0,0);
-
-
-
 
 
     //一定時間ごとに繰り返す処理
@@ -413,6 +599,17 @@ function resetAllDiv(){
     x = document.getElementById("showScreen");
     x.style.display = "block";
 }
+
+
+//sleep関数 ミリ秒で使う
+function sleep(msec) {
+    return new Promise(function(resolve) {
+  
+       setTimeout(function() {resolve()}, msec);
+  
+    })
+ }
+
 
 //初回起動時のタイトル画面読み込み処理
 title();
