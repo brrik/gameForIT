@@ -29,6 +29,8 @@ let barrier = 0; //バリア発動フラグ
 let enmPoint = {}; //雑魚敵の座標処理
 let battleClear = false; //雑魚戦のクリア処理フラグ
 let minorBattleInterval = 0;
+let scrolls = [0,0,0,0,0,0,0,0,0,0]
+
 
 //画像読み込み用のバッファ　最初に読み込んでおくことで処理高速化と安定化
 const imageBG = new Image();
@@ -36,6 +38,7 @@ const imageEnm = new Image();
 const imageBoxOpen = new Image();
 const imageBoxClose = new Image();
 const imageCloud = new Image();
+const imagePlainScroll = new Image();
 
 //音楽読み込み用のバッファ　最初に読み込んでおくことで処理高速化と安定化
 const titleMusic = new Audio(""); titleMusic.loop = true;
@@ -125,7 +128,6 @@ function title(){
        let startMsg = "START!"; //ボタンに表示するメッセージ
        titleCtx.fillStyle = "rgb(255,0,0)";
        let fontWidth = titleCtx.measureText(startMsg).width;
-       let fontHeight = titleCtx.measureText(startMsg).height;
        titleCtx.fillText(startMsg,(titleCanvas.width - fontWidth)/2, btnPos.y + (btnPos.h/2)+10);
 
 
@@ -501,17 +503,134 @@ function openScroll(){
     imageBoxClose.onload = function(){
     drawBG(scrollCanvas);
     scrollCtx.drawImage(imageBoxClose, (canvas.width - imageBoxClose.width) / 2, (canvas.height - imageBoxClose.height) / 2);
+
+    scrollCtx.fillStyle = "rgb(200,200,0)";
+    scrollCtx.font = "italic bold 60px sans-serif";
+    let msg = "宝箱ゲット！"
+    let fontWidth = scrollCtx.measureText(msg).width;
+    scrollCtx.fillText(msg,(canvas.width-fontWidth)/2,(canvas.height/2)-200);
+
+
+    msg = "タッチして箱を開けよう！"
+    scrollCtx.fillStyle = "rgb(0,100,200)";
+    scrollCtx.font = "bold 40px sans-serif";
+    fontWidth = scrollCtx.measureText(msg).width;
+    scrollCtx.fillText(msg,(canvas.width-fontWidth)/2,(canvas.height/2)-100);
+
     ctx.drawImage(scrollCanvas, 0, 0);
     };
 
     function openBox(){
         drawBG(scrollCanvas);
+
+        scrollCtx.fillStyle = "rgb(200,200,0)";
+        scrollCtx.font = "italic bold 60px sans-serif";
+        let msg = "巻物ゲット！"
+        let fontWidth = scrollCtx.measureText(msg).width;
+        scrollCtx.fillText(msg,(canvas.width-fontWidth)/2,(canvas.height/2)-200);
+    
+    
+        msg = "タッチして巻物を読んでみよう！"
+        scrollCtx.fillStyle = "rgb(0,100,200)";
+        scrollCtx.font = "bold 40px sans-serif";
+        fontWidth = scrollCtx.measureText(msg).width;
+        scrollCtx.fillText(msg,(canvas.width-fontWidth)/2,(canvas.height/2)-100);
+
         scrollCtx.drawImage(imageBoxOpen, (canvas.width - imageBoxClose.width) / 2, (canvas.height - imageBoxClose.height) / 2);
         ctx.drawImage(scrollCanvas, 0, 0);
-        canvas.removeEventListener("click",openBox)
-        canvas.addEventListener("click",returnTitle);
+        canvas.removeEventListener("click",openBox);
+        canvas.addEventListener("click",scrollSet);
     }
+}
 
+
+//巻物表示ギミック
+function scrollSet(){
+    let chapterIndex = 0;
+    let stageIndex = 0;
+    let scrLen = scrolls.length-1;
+    let stage = "";
+
+
+    drawBG(scrollCanvas);
+    imagePlainScroll.src = "./src/plainScroll.png"
+
+    imagePlainScroll.addEventListener("load",function(){
+        scrollCtx.drawImage(imagePlainScroll,100,100,canvas.width-200, canvas.width-200);
+
+        for(i=0;i<=scrLen;i++){
+            if(scrolls[i]<10){
+                scrolls[i]++;
+                chapterIndex = i + 1;
+                stageIndex = scrolls[i];
+                console.log(chapterIndex + " - " + stageIndex);
+                
+                stage = chapterIndex+"-"+stageIndex;
+                console.log(stage);
+
+                let a = document.getElementById("scrList");
+                let b = a.getElementsByTagName("td");
+                for(i=0; i<b.length; i++){
+                    if(b[i].innerText==stage){
+                        console.log(b[i].innerText);
+                        console.log(b[i+1].innerText);
+                        console.log(b[i+2].innerText);
+                        
+                        
+                        let lineHeight = 1.5;
+                        let y = canvas.height/2;
+
+                        //ヘッダー用のフォント設定
+                        let fontSize = 24;
+                        scrollCtx.fillStyle = "rgb(50,50,50)";
+                        scrollCtx.font = fontSize + " sans-selif";
+
+                        scrollCtx.fillText(b[i+1].innerText,100,100);
+
+                        let inTex = b[i+2].innerHTML;
+                        console.log(inTex);
+                        let inTexList = inTex.split("<br>");
+                        console.log(inTexList);
+
+                        //ヘッダー用のフォント設定
+                        fontSize = 18;
+                        scrollCtx.fillStyle = "rgb(50,50,50)";
+                        scrollCtx.font = fontSize + " sans-selif";
+
+                        for(j=0;j<inTexList.length;j++){
+                            var line = inTexList[j];
+                            console.log(line);
+                            var addY = fontSize;
+                            if(j>0){
+                                addY += fontSize * lineHeight * j;
+                            }
+                            scrollCtx.fillText(line,0,y + addY);
+                        }
+
+                        break;
+                    }
+                }
+
+                break;
+            }
+        }
+        ctx.drawImage(scrollCanvas,0,0,canvas.width,canvas.height);
+
+        if(scrolls[scrolls.length-1]==10){
+            alert("Game Completed!! Congrats!!");
+            console.log(scrolls);
+            canvas.removeEventListener("click",scrollSet);
+            canvas.addEventListener("click",returnTitle);
+        }else{
+            console.log(scrolls);
+            canvas.removeEventListener("click",scrollSet);
+            canvas.addEventListener("click",returnTitle);
+        };
+    });
+}
+
+function showScroll(){
+    
 }
 
 
@@ -529,7 +648,7 @@ function showScroll(stage){
 
             show.getElementsByTagName("h3")[0].innerText = b[i].innerText;
             show.getElementsByTagName("h1")[0].innerText = b[i+1].innerText;
-            show.getElementsByTagName("p")[0].innerText = b[i+2].innerHTML;
+            show.getElementsByTagName("p")[0].innerHTML = b[i+2].innerHTML;
 
             let x = document.getElementsByClassName("stageList");
             for(j=0;j<x.length;j++){
@@ -613,4 +732,6 @@ function sleep(msec) {
 
 //初回起動時のタイトル画面読み込み処理
 title();
+
+
 
