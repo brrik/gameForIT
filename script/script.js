@@ -1,35 +1,14 @@
-//const MainbattleCanvas = document.getElementById("MainC");
-//const MainbtlCtx = MainbattleCanvas.getContext("2d");
-
-//MainbattleCanvas.width = window.innerWidth - 30;
-//MainbattleCanvas.height = window.innerHeight - 30;
-
-
-
-//const battleCanvas = document.createElement("battleCanvas");
-//const btlCtx = battleCanvas.getContext("2d");
-
-//battleCanvas.width = MainbattleCanvas.width;
-//battleCanvas.height = MainbattleCanvas.height;
-
-//MainbtlCtx.drawImage(battleCanvas,0,0);
-
-
-//　↑↑↑ここまでデバッグ用の処理のため、消しても大丈夫
-
-
-
 //定数の定義
 const loopTime = 1000; //モブがワープする時間間隔(ミリ秒：1000で1秒)
 const enmRect = 100; //敵モブの大きさ　初期設定100
-let hitCountFirst = 5 //敵モブの体力　初期設定5
+let hitCountFirst = 30 //敵モブの体力　初期設定5
 let hitCount = hitCountFirst; //敵モブの現在の体力
 const enmBarrier = 3; //敵モブのバリア動作率　初期設定3　＝　1/3でバリア解除状態
 let barrier = 0; //バリア発動フラグ
 let enmPoint = {}; //雑魚敵の座標処理
 let battleClear = false; //雑魚戦のクリア処理フラグ
-let minorBattleInterval = 0;
-let scrolls = [0,0,0,0,0,0,0,0,0,0]
+let minorBattleInterval = 0; //なんの定数やろうこれ
+let scrolls = [0,0,0,0,0,0,0,0,0,0] //巻物の進捗フラグ系
 
 
 //画像読み込み用のバッファ　最初に読み込んでおくことで処理高速化と安定化
@@ -39,6 +18,7 @@ const imageBoxOpen = new Image();
 const imageBoxClose = new Image();
 const imageCloud = new Image();
 const imagePlainScroll = new Image();
+const imageBoss = new Image();
 
 //音楽読み込み用のバッファ　最初に読み込んでおくことで処理高速化と安定化
 const titleMusic = new Audio(""); titleMusic.loop = true;
@@ -376,6 +356,7 @@ function minorBattle(enmSrc, bgSrc){
         console.log("before mainProc EnmPoint");
         console.log(enmPoint);
         drawBG(battleCanvas);
+        hpSet();
         enmPoint = drawEnm(battleCanvas);
         console.log("after mainProc EnmPoint");
         console.log(enmPoint);
@@ -398,7 +379,6 @@ function minorBattle(enmSrc, bgSrc){
         if(barrier > 1){
             btlCtx.fillStyle = "rgb(100,100,255)";
             btlCtx.fillRect(enmX-10, enmY-10, enmRect+20, enmRect+20);
-
         }
 
         btlCtx.drawImage(imageEnm, enmX, enmY, enmRect, enmRect);
@@ -439,15 +419,16 @@ async function checkClickEnm(e){
 
     if(hit){
         if(barrier <= 1){
+            hpSet();
             ctx.fillStyle="red";
             ctx.font = '48px serif';
             ctx.fillText("HIT!!", enmPoint.x, enmPoint.y);
             canvas.removeEventListener("click",checkClickEnm);
 
             console.log("HIT! Hit count is " + hitCount);
-            
-            hitCount = hitCount -1;
-            if(hitCount==0){
+        
+            hitCount = hitCount -3;
+            if(hitCount<=0){
                 clearInterval(minorBattleInterval);
                 canvas.removeEventListener("click", checkClickEnm);
 
@@ -484,6 +465,20 @@ async function checkClickEnm(e){
     console.log("in event listener  x: " + point.x + "/ y: " + point.y);
 
 };
+
+function hpSet(){
+    btlCtx.fillStyle = "rgb(200,50,0)"
+    btlCtx.fillRect(50,50,canvas.width-100,10);
+
+    let oneHP = (canvas.width-100)/hitCountFirst;
+    
+    btlCtx.fillStyle = "rgb(0,50,200)";
+    if(hitCount<0){
+        hitCount=0;
+    };
+    btlCtx.fillRect(50,50,oneHP*hitCount,10);
+    ctx.drawImage(battleCanvas,0,0);
+}
 
 //===================ここまで雑魚戦時の処理====================
 
@@ -612,10 +607,14 @@ function scrollSet(){
                             fontWidth = scrollCtx.measureText(line).width;
                             scrollCtx.fillText(line,(canvas.width-fontWidth)/2,y + addY);
                         }
-
+                        
+                        let thisDiv = document.getElementById(stage);
+                        thisDiv.setAttribute("onclick","showScroll('" + stage + "')")
+                        thisDiv.innerText = "【取得済】" + stage;
                         break;
                     }
                 }
+
 
                 break;
             }
