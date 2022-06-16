@@ -362,7 +362,6 @@ async function encountEnm(){
 function minorBattle(enmSrc, bgSrc){
 
     canvas.removeEventListener("click",clickCheckTitle);
-    canvas.addEventListener("click",checkClickEnm);
     imageEnm.src = enmSrc;
     imageBG.src = bgSrc;
 
@@ -372,6 +371,8 @@ function minorBattle(enmSrc, bgSrc){
 
     //一定時間ごとに繰り返す処理
     function mainProc(){
+        canvas.removeEventListener("click",checkClickEnm);
+        canvas.addEventListener("click",checkClickEnm);
         console.log("before mainProc EnmPoint");
         console.log(enmPoint);
         drawBG(battleCanvas);
@@ -381,13 +382,6 @@ function minorBattle(enmSrc, bgSrc){
         console.log("copy screen");
         ctx.drawImage(battleCanvas,0,0);
         console.log(battleClear);
-        if(battleClear == true){
-            clearInterval(minorBattleInterval);
-            battleClear = false;
-            canvas.removeEventListener("click", checkClickEnm);
-            canvas.addEventListener("click", clickCheckTitle);
-            openScroll();
-        }
     }
 
     //敵画像の処理
@@ -428,7 +422,7 @@ function minorBattle(enmSrc, bgSrc){
 }
 
 //クリック時の判定を追加
-function checkClickEnm(e){
+async function checkClickEnm(e){
     const rect = canvas.getBoundingClientRect();
     point = {
         x : e.clientX  - rect.left,
@@ -448,15 +442,26 @@ function checkClickEnm(e){
             ctx.fillStyle="red";
             ctx.font = '48px serif';
             ctx.fillText("HIT!!", enmPoint.x, enmPoint.y);
-
+            canvas.removeEventListener("click",checkClickEnm);
 
             console.log("HIT! Hit count is " + hitCount);
             
             hitCount = hitCount -1;
             if(hitCount==0){
-                alert("Clear!!");
+                clearInterval(minorBattleInterval);
+                canvas.removeEventListener("click", checkClickEnm);
+
+                //つぶれる処理
+                for(i=0;i<enmRect;i++){
+                    drawBG(battleCanvas);
+                    btlCtx.drawImage(imageEnm,enmPoint.x,enmPoint.y + i, enmRect, enmRect - i);
+                    ctx.drawImage(battleCanvas,0,0);
+                    await sleep(10)
+                }
+
                 hitCount = hitCountFirst;
-                battleClear = true;
+                await sleep(1000)
+                openScroll();
             };
             /*
             drawBG(battleCanvas);
@@ -479,6 +484,7 @@ function checkClickEnm(e){
     console.log("in event listener  x: " + point.x + "/ y: " + point.y);
 
 };
+
 //===================ここまで雑魚戦時の処理====================
 
 //===================ここから背景の処理====================
@@ -494,31 +500,30 @@ function checkClickEnm(e){
 
 function openScroll(){
     console.log("Load imgBoxClose")
-    canvas.removeEventListener("click",checkClickEnm)
     canvas.addEventListener("click",openBox);
 
     imageBoxOpen.src = "./src/box_opened.png"
     imageBoxClose.src = "./src/box_closed.png"
 
     imageBoxClose.onload = function(){
-    drawBG(scrollCanvas);
-    scrollCtx.drawImage(imageBoxClose, (canvas.width - imageBoxClose.width) / 2, (canvas.height - imageBoxClose.height) / 2);
+        drawBG(scrollCanvas);
+        scrollCtx.drawImage(imageBoxClose, (canvas.width - imageBoxClose.width) / 2, (canvas.height - imageBoxClose.height) / 2);
 
-    scrollCtx.fillStyle = "rgb(200,200,0)";
-    scrollCtx.font = "italic bold 60px sans-serif";
-    let msg = "宝箱ゲット！"
-    let fontWidth = scrollCtx.measureText(msg).width;
-    scrollCtx.fillText(msg,(canvas.width-fontWidth)/2,(canvas.height/2)-200);
+        scrollCtx.fillStyle = "rgb(200,200,0)";
+        scrollCtx.font = "italic bold 60px sans-serif";
+        let msg = "宝箱ゲット！"
+        let fontWidth = scrollCtx.measureText(msg).width;
+        scrollCtx.fillText(msg,(canvas.width-fontWidth)/2,(canvas.height/2)-200);
 
 
-    msg = "タッチして箱を開けよう！"
-    scrollCtx.fillStyle = "rgb(0,100,200)";
-    scrollCtx.font = "bold 40px sans-serif";
-    fontWidth = scrollCtx.measureText(msg).width;
-    scrollCtx.fillText(msg,(canvas.width-fontWidth)/2,(canvas.height/2)-100);
+        msg = "タッチして箱を開けよう！"
+        scrollCtx.fillStyle = "rgb(0,100,200)";
+        scrollCtx.font = "bold 40px sans-serif";
+        fontWidth = scrollCtx.measureText(msg).width;
+        scrollCtx.fillText(msg,(canvas.width-fontWidth)/2,(canvas.height/2)-100);
 
-    ctx.drawImage(scrollCanvas, 0, 0);
-    };
+        ctx.drawImage(scrollCanvas, 0, 0);
+        };
 
     function openBox(){
         drawBG(scrollCanvas);
@@ -556,7 +561,7 @@ function scrollSet(){
     imagePlainScroll.src = "./src/plainScroll.png"
 
     imagePlainScroll.addEventListener("load",function(){
-        scrollCtx.drawImage(imagePlainScroll,100,100,canvas.width-200, canvas.width-200);
+        scrollCtx.drawImage(imagePlainScroll,100,100,canvas.width-200, canvas.height-200);
 
         for(i=0;i<=scrLen;i++){
             if(scrolls[i]<10){
@@ -575,36 +580,37 @@ function scrollSet(){
                         console.log(b[i].innerText);
                         console.log(b[i+1].innerText);
                         console.log(b[i+2].innerText);
-                        
-                        
-                        let lineHeight = 1.5;
-                        let y = canvas.height/2;
 
                         //ヘッダー用のフォント設定
-                        let fontSize = 24;
+                        let fontHeadSize = canvas.height * 0.08;
                         scrollCtx.fillStyle = "rgb(50,50,50)";
-                        scrollCtx.font = fontSize + " sans-selif";
+                        scrollCtx.font = fontHeadSize + "px sans-selif";
 
-                        scrollCtx.fillText(b[i+1].innerText,100,100);
+                        fontWidth = scrollCtx.measureText(b[i+1].innerText).width;
+                        scrollCtx.fillText(b[i+1].innerText,(canvas.width-fontWidth)/2,130 + fontHeadSize);
 
                         let inTex = b[i+2].innerHTML;
                         console.log(inTex);
                         let inTexList = inTex.split("<br>");
                         console.log(inTexList);
 
-                        //ヘッダー用のフォント設定
-                        fontSize = 18;
+                        //本文用のフォント設定
+                        let fontBodySize = canvas.height*0.05;
+                        let y = 130 + fontHeadSize + fontBodySize;
+
                         scrollCtx.fillStyle = "rgb(50,50,50)";
-                        scrollCtx.font = fontSize + " sans-selif";
+                        scrollCtx.font = fontBodySize + "px sans-selif";
+                        let lineHeight = 1.3;
 
                         for(j=0;j<inTexList.length;j++){
-                            var line = inTexList[j];
+                            let line = inTexList[j];
                             console.log(line);
-                            var addY = fontSize;
+                            let addY = fontBodySize;
                             if(j>0){
-                                addY += fontSize * lineHeight * j;
+                                addY = addY + (fontBodySize * lineHeight * j);
                             }
-                            scrollCtx.fillText(line,0,y + addY);
+                            fontWidth = scrollCtx.measureText(line).width;
+                            scrollCtx.fillText(line,(canvas.width-fontWidth)/2,y + addY);
                         }
 
                         break;
@@ -626,11 +632,7 @@ function scrollSet(){
             canvas.removeEventListener("click",scrollSet);
             canvas.addEventListener("click",returnTitle);
         };
-    });
-}
-
-function showScroll(){
-    
+    })
 }
 
 
