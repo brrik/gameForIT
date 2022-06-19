@@ -7,8 +7,9 @@ const enmBarrier = 3; //敵モブのバリア動作率　初期設定3　＝　1
 let barrier = 0; //バリア発動フラグ
 let enmPoint = {}; //雑魚敵の座標処理
 let battleClear = false; //雑魚戦のクリア処理フラグ
-let minorBattleInterval = 0; //なんの定数やろうこれ
-let scrolls = [0,0,0,0,0,0,0,0,0,0] //巻物の進捗フラグ系
+let minorBattleInterval = 0; //モブ戦闘時のsetIntervalのID入れる用変数
+let scrolls = [0,0,0,0,0,0,0,0,0,0]; //巻物の進捗フラグ系
+let bossBtlCount = 0;
 
 
 //画像読み込み用のバッファ　最初に読み込んでおくことで処理高速化と安定化
@@ -71,7 +72,9 @@ fillCanvas.height = canvas.height;
 
 
 //====================ここからタイトル画面処理==================
-let btnPos ={};
+let StartbtnPos ={};
+let scrbtnPos = {};
+let bossbtnPos = {};
 
 function title(){
     const titleImg = new Image();
@@ -84,10 +87,17 @@ function title(){
     //y：下から100の位置、
     //w：xと等間隔になるように
     //h：キャンバスサイズの1/10
-    btnPos = {
+    StartbtnPos = {
         x : 60,
         y : canvas.height-100,
-        w : canvas.width-(60 * 2),
+        w : canvas.width/2-(60 * 2),
+        h : canvas.height/10
+    }
+
+    scrbtnPos = {
+        x : canvas.width /2 + 60,
+        y : canvas.height -100,
+        w : canvas.width/2-(60*2),
         h : canvas.height/10
     }
 
@@ -95,20 +105,30 @@ function title(){
 
         titleCtx.drawImage(titleImg,0,0,titleCanvas.width,titleCanvas.height);
 
-        //テスト用　ボタン素材できるまでは色つきのみで対応
-        titleCtx.fillStyle="rgb(100,100,100)";
-        titleCtx.fillRect(btnPos.x, btnPos.y, btnPos.w, btnPos.h);
-
         //本番用　ボタン素材できたら置き換え
         /*
         titleCtx.drawImage(btnImg,btnPos.x,btnPos.y,btnPos.w,btnPos.h);
         */
 
-       titleCtx.font = "italic bold 40px sans-serif";
-       let startMsg = "START!"; //ボタンに表示するメッセージ
-       titleCtx.fillStyle = "rgb(255,0,0)";
-       let fontWidth = titleCtx.measureText(startMsg).width;
-       titleCtx.fillText(startMsg,(titleCanvas.width - fontWidth)/2, btnPos.y + (btnPos.h/2)+10);
+        //テスト用　ボタン素材できるまでは色つきのみで対応
+        titleCtx.fillStyle="rgb(100,100,100)";
+        titleCtx.fillRect(StartbtnPos.x, StartbtnPos.y, StartbtnPos.w, StartbtnPos.h);
+
+        titleCtx.font = "italic bold 40px sans-serif";
+        let startMsg = "START!"; //ボタンに表示するメッセージ
+        titleCtx.fillStyle = "rgb(255,0,0)";
+        let fontWidth = titleCtx.measureText(startMsg).width;
+        titleCtx.fillText(startMsg,(titleCanvas.width/2 - fontWidth)/2, StartbtnPos.y + (StartbtnPos.h/2)+10);
+
+        titleCtx.fillStyle="rgb(100,100,100)";
+        titleCtx.fillRect(scrbtnPos.x, scrbtnPos.y, scrbtnPos.w, scrbtnPos.h);
+
+        titleCtx.font = "italic bold 40px sans-serif";
+        let scrMsg = "Scroll"; //ボタンに表示するメッセージ
+        titleCtx.fillStyle = "rgb(255,0,0)";
+        fontWidth = titleCtx.measureText(scrMsg).width;
+        titleCtx.fillText(scrMsg,(titleCanvas.width/2 - fontWidth)/2, scrbtnPos.y + (scrbtnPos.h/2)+10);
+
 
 
         ctx.drawImage(titleCanvas,0,0);
@@ -125,10 +145,10 @@ function clickCheckTitle(e){
         y : e.clientY  - rect.top
     };
 
-    const hit = (btnPos.x <= point.x && point.x <= (btnPos.x + btnPos.w)) && 
-                (btnPos.y <= point.y && point.y <= (btnPos.y + btnPos.h));
+    let hit = (StartbtnPos.x <= point.x && point.x <= (StartbtnPos.x + StartbtnPos.w)) && 
+                (StartbtnPos.y <= point.y && point.y <= (StartbtnPos.y + StartbtnPos.h));
     console.log(point);
-    console.log(btnPos);
+    console.log(StartbtnPos);
     if(hit){
         console.log("Go to minor Battle");
         walk();
@@ -482,6 +502,62 @@ function hpSet(){
 
 //===================ここまで雑魚戦時の処理====================
 
+
+//===================ここからボス戦時の処理====================
+function bossMain(){
+    drawBG(battleCanvas);
+    imageEnm.src = ".src/boss.png"
+    bossBtlCount ++;
+    imageEnm.addEventListener("load",function(){
+        btlCtx.drawImage(imageEnm,canvas.width/2,20,50,50);
+
+        canvas.addEventListener("click",checkSelect);
+        
+    async function checkSelect(e){
+        const rect = canvas.getBoundingClientRect();
+        point = {
+            x : e.clientX  - rect.left,
+            y : e.clientY  - rect.top
+        };
+
+        let cohiceList = [ //[x座標始点, y座標始点, x座標終点, y座標終点]
+            [10,                  canvas.height/2 + 10,     canvas.width/2 -10, canvas.height/4 * 3 - 10], //選択肢1
+            [canvas.width/2 + 10, canvas.height/2 + 10,     canvas.width-10,    canvas.height/4 * 3 - 10], //選択肢2
+            [10,                  canvas.height/4 * 3 + 10, canvas.width/2 -10, canvas.height-10], //選択肢3
+            [canvas.width/2 + 10, canvas.heithg/4 * 3 + 10, canvas.width-10,    canvas.height-10]
+        ];
+        btlCtx.fillStyle = "rgb(0,0,0)";
+        btlCtx.fillRect(cohiceList[0][0],cohiceList[0][1],cohiceList[0][2],cohiceList[0][3]);
+        btlCtx.fillRect(cohiceList[1][0],cohiceList[1][1],cohiceList[1][2],cohiceList[1][3]);
+        btlCtx.fillRect(cohiceList[2][0],cohiceList[2][1],cohiceList[2][2],cohiceList[2][3]);
+        btlCtx.fillRect(cohiceList[3][0],cohiceList[3][1],cohiceList[3][2],cohiceList[3][3]);
+        let hit1 = (cohiceList[0][0]<=point.x && point.x >= cohiceList[0][2] &&
+                    cohiceList[0][1]<=point.y && point.y >= cohiceList[0][3]);
+        let hit2 = (cohiceList[1][0]<=point.x && point.x >= cohiceList[1][2] &&
+                    cohiceList[1][1]<=point.y && point.y >= cohiceList[1][3])
+        let hit3 = (cohiceList[2][0]<=point.x && point.x >= cohiceList[2][1] &&
+                    cohiceList[2][2]<=point.y && point.y >= cohiceList[2][3])
+        let hit4 = (cohiceList[3][0]<=point.x && point.x >= cohiceList[3][1] &&
+                    cohiceList[3][2]<=point.y && point.y >= cohiceList[3][3])
+        if(hit1 || hit2 || hit3 || hit4){
+            if(hit1){
+                console.log("Selected choice 1");
+            }else if(hit2){
+                console.log("Selected choice 2");
+            }else if(hit3){
+                console.log("Selected choice 3");
+            }else if(hit4){
+                console.log("Selected choise 4");
+            }
+        }
+    }
+        
+    });
+}
+
+//===================ここまでボス戦時の処理====================
+
+
 //===================ここから背景の処理====================
     function drawBG(battleCanvas){
         console.log("***Draw Back Ground***");
@@ -614,8 +690,6 @@ function scrollSet(){
                         break;
                     }
                 }
-
-
                 break;
             }
         }
@@ -629,7 +703,7 @@ function scrollSet(){
         }else{
             console.log(scrolls);
             canvas.removeEventListener("click",scrollSet);
-            canvas.addEventListener("click",returnTitle);
+            canvas.addEventListener("click",walk);
         };
     })
 }
