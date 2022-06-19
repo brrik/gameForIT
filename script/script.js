@@ -1,3 +1,15 @@
+/*
+
+TASKS
+
+・addEventListener("click")を基本的にすべてonclick発火に変更する
+・ボス戦実装
+
+
+*/
+
+
+
 //定数の定義
 const loopTime = 1000; //モブがワープする時間間隔(ミリ秒：1000で1秒)
 const enmRect = 100; //敵モブの大きさ　初期設定100
@@ -145,16 +157,15 @@ function title(){
         ctx.drawImage(titleCanvas,0,0);
         
 
-        canvas.addEventListener("click", clickCheckTitle(e));
+        canvas.onclick = clickCheckTitle;
     });
 };
 
-function clickCheckTitle(e){
-    const rect = canvas.getBoundingClientRect();
+function clickCheckTitle(){
     console.log(mousePoint);
     point = {
-        x : e.clientX  - rect.left,
-        y : e.clientY  - rect.top
+        x : mousePoint[0],
+        y : mousePoint[1]
     };
     console.log("clicked")
 
