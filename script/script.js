@@ -10,6 +10,7 @@ let battleClear = false; //雑魚戦のクリア処理フラグ
 let minorBattleInterval = 0; //モブ戦闘時のsetIntervalのID入れる用変数
 let scrolls = [0,0,0,0,0,0,0,0,0,0]; //巻物の進捗フラグ系
 let bossBtlCount = 0;
+let mousePoint = [];
 
 
 //画像読み込み用のバッファ　最初に読み込んでおくことで処理高速化と安定化
@@ -67,7 +68,15 @@ fillCanvas.width = canvas.width;
 fillCanvas.height = canvas.height;
 
 
-//minorBattle("./src/enm1.jpg","./src/start.jpg");
+canvas.addEventListener("mousemove", (e) => {
+    let rect = e.target.getBoundingClientRect()
+    let x = e.clientX - rect.left
+    let y = e.clientY - rect.top
+    mousePoint[0] = x;
+    mousePoint[1] = y;
+});
+
+//minorBattle("./src/mons_A1.PNG","./src/bg_day.PNG");
 
 
 
@@ -78,7 +87,7 @@ let bossbtnPos = {};
 
 function title(){
     const titleImg = new Image();
-    titleImg.src = "./src/title.jpg";
+    titleImg.src = "./src/title.PNG";
     const btnImg = new Image();
     btnImg.src = ""
 
@@ -118,7 +127,9 @@ function title(){
         let startMsg = "START!"; //ボタンに表示するメッセージ
         titleCtx.fillStyle = "rgb(255,0,0)";
         let fontWidth = titleCtx.measureText(startMsg).width;
-        titleCtx.fillText(startMsg,(titleCanvas.width/2 - fontWidth)/2, StartbtnPos.y + (StartbtnPos.h/2)+10);
+        titleCtx.fillText(startMsg, StartbtnPos.x + (StartbtnPos.w - fontWidth ) / 2, StartbtnPos.y + (StartbtnPos.h/2)+10);
+
+
 
         titleCtx.fillStyle="rgb(100,100,100)";
         titleCtx.fillRect(scrbtnPos.x, scrbtnPos.y, scrbtnPos.w, scrbtnPos.h);
@@ -127,23 +138,25 @@ function title(){
         let scrMsg = "Scroll"; //ボタンに表示するメッセージ
         titleCtx.fillStyle = "rgb(255,0,0)";
         fontWidth = titleCtx.measureText(scrMsg).width;
-        titleCtx.fillText(scrMsg,(titleCanvas.width/2 - fontWidth)/2, scrbtnPos.y + (scrbtnPos.h/2)+10);
+        titleCtx.fillText(scrMsg, scrbtnPos.x + (scrbtnPos.w - fontWidth) / 2, scrbtnPos.y + (scrbtnPos.h/2)+10);
 
 
 
         ctx.drawImage(titleCanvas,0,0);
         
 
-        canvas.addEventListener("click",clickCheckTitle);
+        canvas.addEventListener("click", clickCheckTitle(e));
     });
 };
 
 function clickCheckTitle(e){
     const rect = canvas.getBoundingClientRect();
+    console.log(mousePoint);
     point = {
         x : e.clientX  - rect.left,
         y : e.clientY  - rect.top
     };
+    console.log("clicked")
 
     let hit = (StartbtnPos.x <= point.x && point.x <= (StartbtnPos.x + StartbtnPos.w)) && 
                 (StartbtnPos.y <= point.y && point.y <= (StartbtnPos.y + StartbtnPos.h));
@@ -165,7 +178,12 @@ function clickCheckTitle(e){
 //歩く時の揺れる処理
 function walk(){
     console.log("walking.....")
-    canvas.removeEventListener("click",clickCheckTitle);
+    //canvas.removeEventListener("click",clickCheckTitle);
+    try{
+        canvas.removeEventListener("click", clickCheckTitle);
+    }catch{
+        canvas.removeEventListener("click", walk);
+    }
 
     //起動時の画面読み込み処理
     btlCtx.fillStyle = "rgb(0,0,0)";
@@ -179,7 +197,7 @@ function walk(){
     btlCtx.fillText(btlMsg,(battleCanvas.width - fontWidth)/2, battleCanvas.height/2);
     ctx.drawImage(battleCanvas,0,0)
 
-    imageBG.src = "./src/start.jpg"
+    imageBG.src = "./src/bg_day.PNG"
 
     //バトルスタートをX秒間表示し、バトルへ
     setTimeout(() => {
@@ -252,7 +270,7 @@ async function encountEnm(){
         imgMax = Math.floor(canvas.height/4);
     }
 
-    imageBG.src = "./src/start.jpg"
+    imageBG.src = "./src/bg_day.PNG"
 
     const waitSec = 5;
 
@@ -332,7 +350,7 @@ async function encountEnm(){
         console.log("alpha = "+i)
         ctx.globalAlpha = i * 0.1;
         drawBG(canvas);
-        imageEnm.src = "./src/enm1.jpg"
+        imageEnm.src = "./src/mons_A1.PNG"
         ctx.drawImage(imageEnm,(battleCanvas.width/2)-(enmRect/2),(battleCanvas.height/2)-(enmRect/2),enmRect,enmRect);
         ctx.drawImage(battleCanvas,0,0);
         await sleep(10);
@@ -355,7 +373,7 @@ async function encountEnm(){
     //念のため1秒待つ
     await sleep(1000);
 
-    minorBattle("./src/enm1.jpg","./src/start.jpg");
+    minorBattle("./src/mons_A1.PNG","./src/bg_day.PNG");
 }
 
 
@@ -699,7 +717,7 @@ function scrollSet(){
             alert("Game Completed!! Congrats!!");
             console.log(scrolls);
             canvas.removeEventListener("click",scrollSet);
-            canvas.addEventListener("click",returnTitle);
+            canvas.addEventListener("click",returnTitle); 
         }else{
             console.log(scrolls);
             canvas.removeEventListener("click",scrollSet);
