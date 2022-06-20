@@ -21,6 +21,7 @@ let enmPoint = {}; //雑魚敵の座標処理
 let battleClear = false; //雑魚戦のクリア処理フラグ
 let minorBattleInterval = 0; //モブ戦闘時のsetIntervalのID入れる用変数
 let scrolls = [0,0,0,0,0,0,0,0,0,0]; //巻物の進捗フラグ系
+const scrollMax = [8,7,4,8,6,5,4,4,8,4]
 let bossBtlCount = 0;
 let mousePoint = [];
 
@@ -78,15 +79,6 @@ const fillCanvas = document.createElement("canvas");
 const fillCtx = fillCanvas.getContext("2d");
 fillCanvas.width = canvas.width;
 fillCanvas.height = canvas.height;
-
-
-canvas.addEventListener("mousemove", (e) => {
-    let rect = e.target.getBoundingClientRect()
-    let x = e.clientX - rect.left
-    let y = e.clientY - rect.top
-    mousePoint[0] = x;
-    mousePoint[1] = y;
-});
 
 //minorBattle("./src/mons_A1.PNG","./src/bg_day.PNG");
 
@@ -163,15 +155,9 @@ function title(){
 
 function clickCheckTitle(){
     console.log(mousePoint);
-    point = {
-        x : mousePoint[0],
-        y : mousePoint[1]
-    };
     console.log("clicked")
 
-    let hit = (StartbtnPos.x <= point.x && point.x <= (StartbtnPos.x + StartbtnPos.w)) && 
-                (StartbtnPos.y <= point.y && point.y <= (StartbtnPos.y + StartbtnPos.h));
-    console.log(point);
+    let hit = hitCheck(StartbtnPos.x, StartbtnPos.y, StartbtnPos.w, StartbtnPos.h);
     console.log(StartbtnPos);
     if(hit){
         console.log("Go to minor Battle");
@@ -188,13 +174,10 @@ function clickCheckTitle(){
 
 //歩く時の揺れる処理
 function walk(){
+    remClick();
+
     console.log("walking.....")
     //canvas.removeEventListener("click",clickCheckTitle);
-    try{
-        canvas.removeEventListener("click", clickCheckTitle);
-    }catch{
-        canvas.removeEventListener("click", walk);
-    }
 
     //起動時の画面読み込み処理
     btlCtx.fillStyle = "rgb(0,0,0)";
@@ -389,8 +372,8 @@ async function encountEnm(){
 
 
 function minorBattle(enmSrc, bgSrc){
+    remClick();
 
-    canvas.removeEventListener("click",clickCheckTitle);
     imageEnm.src = enmSrc;
     imageBG.src = bgSrc;
 
@@ -400,16 +383,11 @@ function minorBattle(enmSrc, bgSrc){
 
     //一定時間ごとに繰り返す処理
     function mainProc(){
-        canvas.removeEventListener("click",checkClickEnm);
-        canvas.addEventListener("click",checkClickEnm);
-        console.log("before mainProc EnmPoint");
-        console.log(enmPoint);
+        remClick();
+        canvas.onclick = checkClickEnm;
         drawBG(battleCanvas);
         hpSet();
         enmPoint = drawEnm(battleCanvas);
-        console.log("after mainProc EnmPoint");
-        console.log(enmPoint);
-        console.log("copy screen");
         ctx.drawImage(battleCanvas,0,0);
         console.log(battleClear);
     }
@@ -435,8 +413,8 @@ function minorBattle(enmSrc, bgSrc){
         const enmPath = {
             x : enmX,
             y : enmY,
-            w : enmX + enmRect,
-            h : enmY + enmRect  
+            w : enmRect,
+            h : enmRect  
         };
         console.log("battleCanvas h:" + battleCanvas.height + " / battleCanvas w:" + battleCanvas.width);
         console.log(enmPath);
@@ -451,20 +429,12 @@ function minorBattle(enmSrc, bgSrc){
 }
 
 //クリック時の判定を追加
-async function checkClickEnm(e){
-    const rect = canvas.getBoundingClientRect();
-    point = {
-        x : e.clientX  - rect.left,
-        y : e.clientY  - rect.top
-    };
+async function checkClickEnm(){
 
-    //btlCtx.fillStyle="rgb(255,0,0)";
-    //btlCtx.fillRect(point.x-25,point.y-25,50,50);
-
-    const hit = (enmPoint.x <= point.x && point.x <= enmPoint.w) && 
-                (enmPoint.y <= point.y && point.y <= enmPoint.h);
-
+    let hit = hitCheck(enmPoint.x,enmPoint.y,enmPoint.w,enmPoint.h);
     console.log(hit)
+
+
 
     if(hit){
         if(barrier <= 1){
@@ -472,14 +442,14 @@ async function checkClickEnm(e){
             ctx.fillStyle="red";
             ctx.font = '48px serif';
             ctx.fillText("HIT!!", enmPoint.x, enmPoint.y);
-            canvas.removeEventListener("click",checkClickEnm);
+            remClick();
 
             console.log("HIT! Hit count is " + hitCount);
         
             hitCount = hitCount -3;
             if(hitCount<=0){
                 clearInterval(minorBattleInterval);
-                canvas.removeEventListener("click", checkClickEnm);
+                remClick();
 
                 //つぶれる処理
                 for(i=0;i<enmRect;i++){
@@ -511,7 +481,7 @@ async function checkClickEnm(e){
         ctx.fillText('MISS!!', enmPoint.x, enmPoint.y);
         console.log("Miss");
     };
-    console.log("in event listener  x: " + point.x + "/ y: " + point.y);
+    console.log("in event listener  x: " + mousePoint[0] + "/ y: " + mousePoint[1]);
 
 };
 
@@ -540,34 +510,27 @@ function bossMain(){
     imageEnm.addEventListener("load",function(){
         btlCtx.drawImage(imageEnm,canvas.width/2,20,50,50);
 
-        canvas.addEventListener("click",checkSelect);
-        
-    async function checkSelect(e){
-        const rect = canvas.getBoundingClientRect();
-        point = {
-            x : e.clientX  - rect.left,
-            y : e.clientY  - rect.top
-        };
+        canvas.onclick = checkSelect;
 
-        let cohiceList = [ //[x座標始点, y座標始点, x座標終点, y座標終点]
-            [10,                  canvas.height/2 + 10,     canvas.width/2 -10, canvas.height/4 * 3 - 10], //選択肢1
-            [canvas.width/2 + 10, canvas.height/2 + 10,     canvas.width-10,    canvas.height/4 * 3 - 10], //選択肢2
-            [10,                  canvas.height/4 * 3 + 10, canvas.width/2 -10, canvas.height-10], //選択肢3
-            [canvas.width/2 + 10, canvas.heithg/4 * 3 + 10, canvas.width-10,    canvas.height-10]
+
+    async function checkSelect(){
+        let choiceList = [ //[x座標始点, y座標始点, x座標終点, y座標終点]
+            [10,                  canvas.height/2 + 10,     canvas.width/2 -10, canvas.height/4 - 10], //選択肢1
+            [canvas.width/2 + 10, canvas.height/2 + 10,     canvas.width/2 -10,    canvas.height/4 - 10], //選択肢2
+            [10,                  canvas.height/4 * 3 + 10, canvas.width/2 -10, canvas.height/4 -10], //選択肢3
+            [canvas.width/2 + 10, canvas.heithg/4 * 3 + 10, canvas.width/2 -10,    canvas.height/4 -10]
         ];
         btlCtx.fillStyle = "rgb(0,0,0)";
-        btlCtx.fillRect(cohiceList[0][0],cohiceList[0][1],cohiceList[0][2],cohiceList[0][3]);
-        btlCtx.fillRect(cohiceList[1][0],cohiceList[1][1],cohiceList[1][2],cohiceList[1][3]);
-        btlCtx.fillRect(cohiceList[2][0],cohiceList[2][1],cohiceList[2][2],cohiceList[2][3]);
-        btlCtx.fillRect(cohiceList[3][0],cohiceList[3][1],cohiceList[3][2],cohiceList[3][3]);
-        let hit1 = (cohiceList[0][0]<=point.x && point.x >= cohiceList[0][2] &&
-                    cohiceList[0][1]<=point.y && point.y >= cohiceList[0][3]);
-        let hit2 = (cohiceList[1][0]<=point.x && point.x >= cohiceList[1][2] &&
-                    cohiceList[1][1]<=point.y && point.y >= cohiceList[1][3])
-        let hit3 = (cohiceList[2][0]<=point.x && point.x >= cohiceList[2][1] &&
-                    cohiceList[2][2]<=point.y && point.y >= cohiceList[2][3])
-        let hit4 = (cohiceList[3][0]<=point.x && point.x >= cohiceList[3][1] &&
-                    cohiceList[3][2]<=point.y && point.y >= cohiceList[3][3])
+        btlCtx.fillRect(choiceList[0][0],choiceList[0][1],choiceList[0][2],choiceList[0][3]);
+        btlCtx.fillRect(choiceList[1][0],choiceList[1][1],choiceList[1][2],choiceList[1][3]);
+        btlCtx.fillRect(choiceList[2][0],choiceList[2][1],choiceList[2][2],choiceList[2][3]);
+        btlCtx.fillRect(choiceList[3][0],choiceList[3][1],choiceList[3][2],choiceList[3][3]);
+
+        let hit1 = hitCheck(choiceList[0][0],choiceList[0][1],choiceList[0][2],choiceList[0][3]);
+        let hit2 = hitCheck(choiceList[1][0],choiceList[1][1],choiceList[1][2],choiceList[1][3]);
+        let hit3 = hitCheck(choiceList[2][0],choiceList[2][1],choiceList[2][2],choiceList[2][3]);
+        let hit4 = hitCheck(choiceList[3][0],choiceList[3][1],choiceList[3][2],choiceList[3][3]);
+
         if(hit1 || hit2 || hit3 || hit4){
             if(hit1){
                 console.log("Selected choice 1");
@@ -600,7 +563,7 @@ function bossMain(){
 
 function openScroll(){
     console.log("Load imgBoxClose")
-    canvas.addEventListener("click",openBox);
+    canvas.onclick = openBox;
 
     imageBoxOpen.src = "./src/box_opened.png"
     imageBoxClose.src = "./src/box_closed.png"
@@ -643,8 +606,7 @@ function openScroll(){
 
         scrollCtx.drawImage(imageBoxOpen, (canvas.width - imageBoxClose.width) / 2, (canvas.height - imageBoxClose.height) / 2);
         ctx.drawImage(scrollCanvas, 0, 0);
-        canvas.removeEventListener("click",openBox);
-        canvas.addEventListener("click",scrollSet);
+        canvas.onclick = scrollSet;
     }
 }
 
@@ -727,12 +689,10 @@ function scrollSet(){
         if(scrolls[scrolls.length-1]==10){
             alert("Game Completed!! Congrats!!");
             console.log(scrolls);
-            canvas.removeEventListener("click",scrollSet);
-            canvas.addEventListener("click",returnTitle); 
+            canvas.onclick = returnTitle;
         }else{
             console.log(scrolls);
-            canvas.removeEventListener("click",scrollSet);
-            canvas.addEventListener("click",walk);
+            canvas.onclick = walk;
         };
     })
 }
@@ -795,8 +755,7 @@ function scrollOpenScreen(){
 //タイトル画面に戻る汎用処理
 function returnTitle(){
     clearInterval(minorBattleInterval);
-    canvas.removeEventListener("click",checkClickEnm)
-    canvas.addEventListener("click",clickCheckTitle);
+    canvas.onclick = clickCheckTitle;
     ctx.drawImage(titleCanvas,0,0);
     resetAllDiv();
 }
@@ -823,6 +782,35 @@ function resetAllDiv(){
     x.style.display = "block";
 }
 
+function remClick(){
+    canvas.onclick = function(){
+        console.log("発火削除");
+    }
+}
+
+//クリック判定がボタン位置かを判定する関数
+//fillRectと同じ書き方にしてる
+function hitCheck(btnX, btnY, btnW, btnH){
+    let hit = (btnX <= mousePoint[0] && mousePoint[0] <= btnX + btnW)&&
+              (btnY <= mousePoint[1] && mousePoint[1] <= btnY + btnH);
+
+    if(hit){
+        return true;
+    }else{
+        return false;
+    }
+}
+
+
+//常時マウスの位置を取得
+//onclick発火時のマウス位置取得に利用
+canvas.addEventListener("mousemove", (e) => {
+    let rect = e.target.getBoundingClientRect()
+    let x = e.clientX - rect.left
+    let y = e.clientY - rect.top
+    mousePoint[0] = x;
+    mousePoint[1] = y;
+});
 
 //sleep関数 ミリ秒で使う
 function sleep(msec) {
