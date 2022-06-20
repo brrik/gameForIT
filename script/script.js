@@ -626,7 +626,7 @@ function scrollSet(){
         scrollCtx.drawImage(imagePlainScroll,100,100,canvas.width-200, canvas.height-200);
 
         for(i=0;i<=scrLen;i++){
-            if(scrolls[i]<10){
+            if(scrolls[i]<scrollMax[i]){
                 scrolls[i]++;
                 chapterIndex = i + 1;
                 stageIndex = scrolls[i];
@@ -635,52 +635,13 @@ function scrollSet(){
                 stage = chapterIndex+"-"+stageIndex;
                 console.log(stage);
 
-                let a = document.getElementById("scrList");
-                let b = a.getElementsByTagName("td");
-                for(i=0; i<b.length; i++){
-                    if(b[i].innerText==stage){
-                        console.log(b[i].innerText);
-                        console.log(b[i+1].innerText);
-                        console.log(b[i+2].innerText);
-
-                        //ヘッダー用のフォント設定
-                        let fontHeadSize = canvas.height * 0.08;
-                        scrollCtx.fillStyle = "rgb(50,50,50)";
-                        scrollCtx.font = fontHeadSize + "px sans-selif";
-
-                        fontWidth = scrollCtx.measureText(b[i+1].innerText).width;
-                        scrollCtx.fillText(b[i+1].innerText,(canvas.width-fontWidth)/2,130 + fontHeadSize);
-
-                        let inTex = b[i+2].innerHTML;
-                        console.log(inTex);
-                        let inTexList = inTex.split("<br>");
-                        console.log(inTexList);
-
-                        //本文用のフォント設定
-                        let fontBodySize = canvas.height*0.05;
-                        let y = 130 + fontHeadSize + fontBodySize;
-
-                        scrollCtx.fillStyle = "rgb(50,50,50)";
-                        scrollCtx.font = fontBodySize + "px sans-selif";
-                        let lineHeight = 1.3;
-
-                        for(j=0;j<inTexList.length;j++){
-                            let line = inTexList[j];
-                            console.log(line);
-                            let addY = fontBodySize;
-                            if(j>0){
-                                addY = addY + (fontBodySize * lineHeight * j);
-                            }
-                            fontWidth = scrollCtx.measureText(line).width;
-                            scrollCtx.fillText(line,(canvas.width-fontWidth)/2,y + addY);
-                        }
+                let b = document.getElementById("st" + stage);
+                scrollCtx.drawImage(b,0,0,canvas.width,canvas.height);
                         
-                        let thisDiv = document.getElementById(stage);
-                        thisDiv.setAttribute("onclick","showScroll('" + stage + "')")
-                        thisDiv.innerText = "【取得済】" + stage;
-                        break;
-                    }
-                }
+                let thisDiv = document.getElementById(stage);
+                thisDiv.setAttribute("onclick","showScroll('" + stage + "')");
+                thisDiv.innerText = "【取得済】" + stage;
+
                 break;
             }
         }
