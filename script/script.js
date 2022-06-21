@@ -11,9 +11,9 @@ TASKS
 
 
 //定数の定義
-const loopTime = 1000; //モブがワープする時間間隔(ミリ秒：1000で1秒)
-const enmRect = 100; //敵モブの大きさ　初期設定100
-let hitCountFirst = 30 //敵モブの体力　初期設定5
+const loopTime = 800; //モブがワープする時間間隔(ミリ秒：1000で1秒)
+const enmRect = 200; //敵モブの大きさ　初期設定100
+let hitCountFirst = 3 //敵モブの体力　初期設定5
 let hitCount = hitCountFirst; //敵モブの現在の体力
 const enmBarrier = 3; //敵モブのバリア動作率　初期設定3　＝　1/3でバリア解除状態
 let barrier = 0; //バリア発動フラグ
@@ -21,7 +21,19 @@ let enmPoint = {}; //雑魚敵の座標処理
 let battleClear = false; //雑魚戦のクリア処理フラグ
 let minorBattleInterval = 0; //モブ戦闘時のsetIntervalのID入れる用変数
 let scrolls = [0,0,0,0,0,0,0,0,0,0]; //巻物の進捗フラグ系
-const scrollMax = [8,7,4,8,6,5,4,4,8,4]
+const scrollMax = [8,7,4,8,6,5,4,4,8,4]; //各章のステージ数
+const stageBG = [   //1:朝　2:昼　3:夕
+    [1,1,1,2,2,3,3,3], //1章
+    [1,1,1,2,2,3,3], //2章
+    [1,2,2,3], //3章
+    [1,1,1,2,2,3,3,3], //4章
+    [1,1,2,2,3,3], //5章
+    [1,1,2,3,3], //6章
+    [1,2,2,3], //7章
+    [1,2,2,3], //8章
+    [1,1,1,2,2,3,3,3], //9章
+    [1,2,2,3]  //10章
+];
 let bossBtlCount = 0;
 let mousePoint = [];
 
@@ -29,11 +41,22 @@ let mousePoint = [];
 //画像読み込み用のバッファ　最初に読み込んでおくことで処理高速化と安定化
 const imageBG = new Image();
 const imageEnm = new Image();
-const imageBoxOpen = new Image();
-const imageBoxClose = new Image();
-const imageCloud = new Image();
-const imagePlainScroll = new Image();
+const imageHitEnm = new Image();
+const imageGrdEnm = new Image();
 const imageBoss = new Image();
+
+const imageBoxOpen = new Image();
+imageBoxOpen.src = "./src/box_opened.png"
+
+const imageBoxClose = new Image();
+imageBoxClose.src = "./src/box_closed.png"
+
+const imageCloud = new Image();
+imageCloud.src = "./src/cloud.png"
+
+const imagePlainScroll = new Image();
+imagePlainScroll.src = "./src/plainScroll.png"
+
 
 //音楽読み込み用のバッファ　最初に読み込んでおくことで処理高速化と安定化
 const titleMusic = new Audio(""); titleMusic.loop = true;
@@ -79,9 +102,6 @@ const fillCanvas = document.createElement("canvas");
 const fillCtx = fillCanvas.getContext("2d");
 fillCanvas.width = canvas.width;
 fillCanvas.height = canvas.height;
-
-//minorBattle("./src/mons_A1.PNG","./src/bg_day.PNG");
-
 
 
 //====================ここからタイトル画面処理==================
@@ -174,7 +194,34 @@ function clickCheckTitle(){
 
 //歩く時の揺れる処理
 function walk(){
+    console.log(scrolls);
     remClick();
+    let cpt = 0;
+    let stg = 0;
+    let stgBg = 0;
+    for(i=0;i<scrolls.length-1;i++){
+        if(scrolls[i]<scrollMax[i]){
+            cpt = i;
+            stg = scrolls[i];
+            stgBg = stageBG[cpt][stg];
+
+            if(stgBg == 1){
+                imageBG.src = "./src/bg_morn.PNG";
+            }else if(stgBg == 2){
+                imageBG.src = "./src/bg_day.PNG";
+            }else if(stgBg == 3){
+                imageBG.src = "./src/bg_aftnoon.PNG";
+            }
+
+            imageEnm.src = "./src/mons" + (cpt + 1) + ".PNG";
+            imageHitEnm.src = "./src/mons" + (cpt + 1) + "_atk.PNG";
+            imageGrdEnm.src = "./src/mons" + (cpt + 1) + "_grd.PNG";
+            
+
+            break;
+        }
+    }
+
 
     console.log("walking.....")
     //canvas.removeEventListener("click",clickCheckTitle);
@@ -191,7 +238,7 @@ function walk(){
     btlCtx.fillText(btlMsg,(battleCanvas.width - fontWidth)/2, battleCanvas.height/2);
     ctx.drawImage(battleCanvas,0,0)
 
-    imageBG.src = "./src/bg_day.PNG"
+
 
     //バトルスタートをX秒間表示し、バトルへ
     setTimeout(() => {
@@ -256,15 +303,12 @@ function walk(){
 
 //雲から敵が現れる処理
 async function encountEnm(){
-    imageCloud.src = "./src/cloud.png"
     let imgMax = 0
     if(canvas.height > canvas.width){
         imgMax = Math.floor(canvas.width/4);
     }else{
         imgMax = Math.floor(canvas.height/4);
     }
-
-    imageBG.src = "./src/bg_day.PNG"
 
     const waitSec = 5;
 
@@ -344,7 +388,6 @@ async function encountEnm(){
         console.log("alpha = "+i)
         ctx.globalAlpha = i * 0.1;
         drawBG(canvas);
-        imageEnm.src = "./src/mons_A1.PNG"
         ctx.drawImage(imageEnm,(battleCanvas.width/2)-(enmRect/2),(battleCanvas.height/2)-(enmRect/2),enmRect,enmRect);
         ctx.drawImage(battleCanvas,0,0);
         await sleep(10);
@@ -367,15 +410,12 @@ async function encountEnm(){
     //念のため1秒待つ
     await sleep(1000);
 
-    minorBattle("./src/mons_A1.PNG","./src/bg_day.PNG");
+    minorBattle();
 }
 
 
-function minorBattle(enmSrc, bgSrc){
+function minorBattle(){
     remClick();
-
-    imageEnm.src = enmSrc;
-    imageBG.src = bgSrc;
 
     minorBattleMusic.play();
     
@@ -398,18 +438,18 @@ function minorBattle(enmSrc, bgSrc){
 
         barrier = Math.floor(Math.random() * enmBarrier);
 
-        let enmX = Math.floor(Math.random() * (battleCanvas.width - enmRect));
-        let enmY = Math.floor(Math.random() * (battleCanvas.height - enmRect));
+        let enmX = Math.floor(Math.random() * (canvas.width - enmRect));
+        let enmY = Math.floor(Math.random() * (canvas.height - enmRect - 80)) + 80;
 
         const btlCtx = battleCanvas.getContext("2d");
 
         if(barrier > 1){
-            btlCtx.fillStyle = "rgb(100,100,255)";
-            btlCtx.fillRect(enmX-10, enmY-10, enmRect+20, enmRect+20);
+            drawBG(battleCanvas);
+            btlCtx.drawImage(imageGrdEnm, enmX, enmY, enmRect, enmRect)
         }
 
         btlCtx.drawImage(imageEnm, enmX, enmY, enmRect, enmRect);
-
+        hpSet()
         const enmPath = {
             x : enmX,
             y : enmY,
@@ -438,11 +478,15 @@ async function checkClickEnm(){
 
     if(hit){
         if(barrier <= 1){
+            drawBG(battleCanvas);
+            btlCtx.drawImage(imageHitEnm, enmPoint.x, enmPoint.y, enmRect, enmRect);
+            ctx.drawImage(battleCanvas,0,0);
             hpSet();
             ctx.fillStyle="red";
             ctx.font = '48px serif';
             ctx.fillText("HIT!!", enmPoint.x, enmPoint.y);
             remClick();
+
 
             console.log("HIT! Hit count is " + hitCount);
         
@@ -469,6 +513,7 @@ async function checkClickEnm(){
             ctx.drawImage(battleCanvas,0,0);
             */
         }else{
+            hpSet();
             ctx.fillStyle="yellow";
             ctx.font = '48px serif';
             ctx.fillText('Blocked!', enmPoint.x, enmPoint.y);
@@ -476,6 +521,7 @@ async function checkClickEnm(){
 
         }
     }else{
+        hpSet();
         ctx.fillStyle="blue";
         ctx.font = '48px serif';
         ctx.fillText('MISS!!', enmPoint.x, enmPoint.y);
@@ -551,10 +597,10 @@ function bossMain(){
 
 
 //===================ここから背景の処理====================
-    function drawBG(battleCanvas){
+    function drawBG(thisCanv){
         console.log("***Draw Back Ground***");
-        const btlCtx = battleCanvas.getContext("2d");
-        btlCtx.drawImage(imageBG, 0, 0, battleCanvas.width, battleCanvas.height);
+        let thisCTX = thisCanv.getContext("2d")
+        thisCTX.drawImage(imageBG, 0, 0, canvas.width, canvas.height);
     }
 //===================ここまで背景の処理====================
 
@@ -562,11 +608,9 @@ function bossMain(){
 //====================ここから巻物の処理====================
 
 function openScroll(){
+    remClick();
     console.log("Load imgBoxClose")
     canvas.onclick = openBox;
-
-    imageBoxOpen.src = "./src/box_opened.png"
-    imageBoxClose.src = "./src/box_closed.png"
 
     imageBoxClose.onload = function(){
         drawBG(scrollCanvas);
@@ -613,6 +657,7 @@ function openScroll(){
 
 //巻物表示ギミック
 function scrollSet(){
+    remClick();
     let chapterIndex = 0;
     let stageIndex = 0;
     let scrLen = scrolls.length-1;
@@ -620,46 +665,42 @@ function scrollSet(){
 
 
     drawBG(scrollCanvas);
-    imagePlainScroll.src = "./src/plainScroll.png"
+    scrollCtx.drawImage(imagePlainScroll,10,10,canvas.width-20, canvas.height-20);
 
-    imagePlainScroll.addEventListener("load",function(){
-        scrollCtx.drawImage(imagePlainScroll,100,100,canvas.width-200, canvas.height-200);
+    for(i=0;i<=scrLen;i++){
+        if(scrolls[i]<scrollMax[i]){
+            scrolls[i]++;
+            console.log(scrolls);
+            chapterIndex = i + 1;
+            stageIndex = scrolls[i];
+            
+            stage = chapterIndex+"-"+stageIndex;
+            console.log(stage);
 
-        for(i=0;i<=scrLen;i++){
-            if(scrolls[i]<scrollMax[i]){
-                scrolls[i]++;
-                chapterIndex = i + 1;
-                stageIndex = scrolls[i];
-                console.log(chapterIndex + " - " + stageIndex);
-                
-                stage = chapterIndex+"-"+stageIndex;
-                console.log(stage);
-
-                let b = document.getElementById("st" + stage);
-                scrollCtx.drawImage(b,0,0,canvas.width,canvas.height);
-                        
-                let thisDiv = document.getElementById(stage);
-                thisDiv.setAttribute("onclick","showScroll('" + stage + "')");
-                thisDiv.innerText = "【取得済】" + stage;
-
-                break;
-            }
+            let b = document.getElementById("st" + stage);
+            scrollCtx.drawImage(b,80,80,canvas.width-160,canvas.height-160);
+                    
+            let thisDiv = document.getElementById(stage);
+            thisDiv.setAttribute("onclick","showScroll('" + stage + "')");
+            thisDiv.innerText = "【取得済】" + stage;
+            console.log(scrolls);
+            break;
         }
-        ctx.drawImage(scrollCanvas,0,0,canvas.width,canvas.height);
+    }
+    ctx.drawImage(scrollCanvas,0,0,canvas.width,canvas.height);
 
-        if(scrolls[scrolls.length-1]==scrollMax[scrollMax.length-1]){
-            alert("Game Completed!! Congrats!!");
-            console.log(scrolls);
-            canvas.onclick = returnTitle;
-        }else{
-            console.log(scrolls);
-            canvas.onclick = walk;
-        };
-    })
+    if(scrolls[scrolls.length-1]==scrollMax[scrollMax.length-1]){
+        alert("Game Completed!! Congrats!!");
+        console.log(scrolls);
+        canvas.onclick = returnTitle;
+    }else{
+        console.log(scrolls);
+        canvas.onclick = walk;
+    };
 }
 
 
-
+//巻物関係　要抜本改編
 //巻物の情報を取得するやつ
 function showScroll(stage){
     let show = document.getElementById("scrollShow");
@@ -774,6 +815,6 @@ function sleep(msec) {
 
 //初回起動時のタイトル画面読み込み処理
 title();
-
+//ctx.drawImage(document.getElementById("st1-1"),0,0,canvas.width,canvas.height);
 
 
