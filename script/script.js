@@ -647,7 +647,7 @@ function scrollSet(){
         }
         ctx.drawImage(scrollCanvas,0,0,canvas.width,canvas.height);
 
-        if(scrolls[scrolls.length-1]==10){
+        if(scrolls[scrolls.length-1]==scrollMax[scrollMax.length-1]){
             alert("Game Completed!! Congrats!!");
             console.log(scrolls);
             canvas.onclick = returnTitle;
@@ -663,27 +663,11 @@ function scrollSet(){
 //巻物の情報を取得するやつ
 function showScroll(stage){
     let show = document.getElementById("scrollShow");
-    let a = document.getElementById("scrList");
-    let b = a.getElementsByTagName("td");
-    for(i=0; i<b.length; i++){
-        if(b[i].innerText==stage){
-            console.log(b[i].innerText);
-            console.log(b[i+1].innerText);
-            console.log(b[i+2].innerText);
+    let thisScr = document.getElementById("st"+stage);
+    let thisPNG = new Image;
+    thisPNG.src = thisScr;
 
-            show.getElementsByTagName("h3")[0].innerText = b[i].innerText;
-            show.getElementsByTagName("h1")[0].innerText = b[i+1].innerText;
-            show.getElementsByTagName("p")[0].innerHTML = b[i+2].innerHTML;
-
-            let x = document.getElementsByClassName("stageList");
-            for(j=0;j<x.length;j++){
-                x[j].style.display = "none";
-            }
-
-            show.style.display = "block";
-            break;
-        }
-    }
+    
 }
 
 
@@ -707,6 +691,11 @@ function scrollOpenScreen(){
     }else{
         scrDiv.style.display = "block";
         cvDiv.style.display = "none";
+    }
+
+    let stList = document.getElementsByClassName("stageList");
+    for(i=0;i<stList.length;i++){
+        stList[i].style.display = "none";
     }
 }
 

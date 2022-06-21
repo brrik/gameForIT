@@ -14,6 +14,9 @@
 #chpScroll table{
     width:100%;
     height:100%;
+    background-image: url("../src/title.PNG");
+    background-repeat: no-repeat;
+    background-size: cover;
 }
 
 #chpScroll td{
