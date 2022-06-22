@@ -11,18 +11,14 @@ TASKS
 
 
 //定数の定義
+
+//必要に応じて調整がいる項目
 const loopTime = 800; //モブがワープする時間間隔(ミリ秒：1000で1秒)
-const enmRect = 200; //敵モブの大きさ　初期設定100
-let hitCountFirst = 3 //敵モブの体力　初期設定5
-let hitCount = hitCountFirst; //敵モブの現在の体力
+const enmRect = window.innerWidth / 10; //敵モブの大きさ　初期設定:表示領域の10%の大きさ
+let hitCountFirst = 3 //敵モブの体力　初期設定30
 const enmBarrier = 3; //敵モブのバリア動作率　初期設定3　＝　1/3でバリア解除状態
-let barrier = 0; //バリア発動フラグ
-let enmPoint = {}; //雑魚敵の座標処理
-let battleClear = false; //雑魚戦のクリア処理フラグ
-let minorBattleInterval = 0; //モブ戦闘時のsetIntervalのID入れる用変数
-let scrolls = [0,0,0,0,0,0,0,0,0,0]; //巻物の進捗フラグ系
 const scrollMax = [8,7,4,8,6,5,4,4,8,4]; //各章のステージ数
-const stageBG = [   //1:朝　2:昼　3:夕
+const stageBG = [   //1:朝　2:昼　3:夕　　各ステージの読み込む背景画像
     [1,1,1,2,2,3,3,3], //1章
     [1,1,1,2,2,3,3], //2章
     [1,2,2,3], //3章
@@ -33,6 +29,28 @@ const stageBG = [   //1:朝　2:昼　3:夕
     [1,2,2,3], //8章
     [1,1,1,2,2,3,3,3], //9章
     [1,2,2,3]  //10章
+];
+
+
+
+//プログラム上で扱う変数群(触らない)
+let hitCount = hitCountFirst; //敵モブの現在の体力
+let barrier = 0; //バリア発動フラグ
+let enmPoint = {}; //雑魚敵の座標処理
+let battleClear = false; //雑魚戦のクリア処理フラグ
+let minorBattleInterval = 0; //モブ戦闘時のsetIntervalのID入れる用変数
+let scrolls = [0,0,0,0,0,0,0,0,0,0]; //巻物の進捗フラグ系
+let scrollGet = [       //巻物の取得フラグ
+    [0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0],
+    [0,0,0,0],
+    [0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0],
+    [0,0,0,0,0],
+    [0,0,0,0],
+    [0,0,0,0],
+    [0,0,0,0,0,0,0,0],
+    [0,0,0,0]
 ];
 let bossBtlCount = 0;
 let mousePoint = [];
@@ -104,12 +122,74 @@ fillCanvas.width = canvas.width;
 fillCanvas.height = canvas.height;
 
 
+
+//====================ここから各種汎用処理==================
+
+//タイトル画面に戻る汎用処理
+function returnTitle(){
+    remClick();
+    clearInterval(minorBattleInterval);
+    canvas.onclick = title();
+}
+
+
+//前の画面に戻る汎用処理
+function backScr(beforeScr, afterScr){
+    let bef = document.getElementById(beforeScr);
+    let aft = document.getElementById(afterScr);
+    bef.style.display = "none";
+    aft.style.display = "block";
+}
+
+
+function remClick(){
+    canvas.onclick = function(){
+        console.log("発火削除");
+    }
+}
+
+//クリック判定がボタン位置かを判定する関数
+//fillRectと同じ書き方にしてる
+function hitCheck(btnX, btnY, btnW, btnH){
+    let hit = (btnX <= mousePoint[0] && mousePoint[0] <= btnX + btnW)&&
+              (btnY <= mousePoint[1] && mousePoint[1] <= btnY + btnH);
+
+    if(hit){
+        return true;
+    }else{
+        return false;
+    }
+}
+
+
+//常時マウスの位置を取得
+//onclick発火時のマウス位置取得に利用
+canvas.addEventListener("mousemove", (e) => {
+    let rect = e.target.getBoundingClientRect()
+    let x = e.clientX - rect.left
+    let y = e.clientY - rect.top
+    mousePoint[0] = x;
+    mousePoint[1] = y;
+});
+
+//sleep関数 ミリ秒で使う
+function sleep(msec) {
+    return new Promise(function(resolve) {
+  
+       setTimeout(function() {resolve()}, msec);
+  
+    })
+ }
+//====================ここまで各種汎用処理==================
+
+
 //====================ここからタイトル画面処理==================
 let StartbtnPos ={};
 let scrbtnPos = {};
 let bossbtnPos = {};
 
 function title(){
+    remClick();
     const titleImg = new Image();
     titleImg.src = "./src/title.PNG";
     const btnImg = new Image();
@@ -144,22 +224,22 @@ function title(){
         */
 
         //テスト用　ボタン素材できるまでは色つきのみで対応
-        titleCtx.fillStyle="rgb(100,100,100)";
+        titleCtx.fillStyle="rgb(200,100,100)";
         titleCtx.fillRect(StartbtnPos.x, StartbtnPos.y, StartbtnPos.w, StartbtnPos.h);
 
         titleCtx.font = "italic bold 40px sans-serif";
-        let startMsg = "START!"; //ボタンに表示するメッセージ
+        let startMsg = "進む"; //ボタンに表示するメッセージ
         titleCtx.fillStyle = "rgb(255,0,0)";
         let fontWidth = titleCtx.measureText(startMsg).width;
         titleCtx.fillText(startMsg, StartbtnPos.x + (StartbtnPos.w - fontWidth ) / 2, StartbtnPos.y + (StartbtnPos.h/2)+10);
 
 
 
-        titleCtx.fillStyle="rgb(100,100,100)";
+        titleCtx.fillStyle="rgb(100,200,100)";
         titleCtx.fillRect(scrbtnPos.x, scrbtnPos.y, scrbtnPos.w, scrbtnPos.h);
 
         titleCtx.font = "italic bold 40px sans-serif";
-        let scrMsg = "Scroll"; //ボタンに表示するメッセージ
+        let scrMsg = "巻物を見る"; //ボタンに表示するメッセージ
         titleCtx.fillStyle = "rgb(255,0,0)";
         fontWidth = titleCtx.measureText(scrMsg).width;
         titleCtx.fillText(scrMsg, scrbtnPos.x + (scrbtnPos.w - fontWidth) / 2, scrbtnPos.y + (scrbtnPos.h/2)+10);
@@ -169,23 +249,25 @@ function title(){
         ctx.drawImage(titleCanvas,0,0);
         
 
-        canvas.onclick = clickCheckTitle;
+        canvas.onclick = function(){
+            console.log(mousePoint);
+            console.log("clicked")
+        
+            let startHit = hitCheck(StartbtnPos.x, StartbtnPos.y, StartbtnPos.w, StartbtnPos.h);
+            let scrHit = hitCheck(scrbtnPos.x, scrbtnPos.y, scrbtnPos.w, scrbtnPos.h);
+        
+            if(startHit){
+                console.log("Go to minor Battle");
+                walk();
+                //encountEnm();
+            }else if(scrHit){
+                console.log("go to showScroll")
+                showScroll();
+            }
+        };
     });
 };
 
-function clickCheckTitle(){
-    console.log(mousePoint);
-    console.log("clicked")
-
-    let hit = hitCheck(StartbtnPos.x, StartbtnPos.y, StartbtnPos.w, StartbtnPos.h);
-    console.log(StartbtnPos);
-    if(hit){
-        console.log("Go to minor Battle");
-        walk();
-        //encountEnm();
-    }
-    
-};
 //====================ここまでタイトル画面処理==================
 
 
@@ -229,9 +311,9 @@ function walk(){
     //起動時の画面読み込み処理
     btlCtx.fillStyle = "rgb(0,0,0)";
     btlCtx.fillRect(0,0,battleCanvas.width,battleCanvas.height);
-    btlCtx.fillStyle = "rgb(255,255,255)";
 
     //バトルスタートの表示
+    btlCtx.fillStyle = "rgb(255,255,255)";
     btlCtx.font = "italic bold 100px sans-serif";
     let btlMsg = "Battle Start!!"
     let fontWidth = btlCtx.measureText(btlMsg).width;
@@ -550,45 +632,54 @@ function hpSet(){
 
 //===================ここからボス戦時の処理====================
 function bossMain(){
+
+    remClick();
+    let scrLen = scrolls.length-1;
+    let bossIndex = 0;
+
     drawBG(battleCanvas);
-    imageEnm.src = ".src/boss.png"
-    bossBtlCount ++;
+
+    for(i=0;i<=scrLen;i++){
+        if(scrolls[i]==scrollMax[i]){
+            bossIndex = i + 1;
+        }
+    }
+
+    imageEnm.src = "src/boss" + bossIndex + ".png"
     imageEnm.addEventListener("load",function(){
         btlCtx.drawImage(imageEnm,canvas.width/2,20,50,50);
-
-        canvas.onclick = checkSelect;
-
-
-    async function checkSelect(){
         let choiceList = [ //[x座標始点, y座標始点, x座標終点, y座標終点]
-            [10,                  canvas.height/2 + 10,     canvas.width/2 -10, canvas.height/4 - 10], //選択肢1
-            [canvas.width/2 + 10, canvas.height/2 + 10,     canvas.width/2 -10,    canvas.height/4 - 10], //選択肢2
-            [10,                  canvas.height/4 * 3 + 10, canvas.width/2 -10, canvas.height/4 -10], //選択肢3
-            [canvas.width/2 + 10, canvas.heithg/4 * 3 + 10, canvas.width/2 -10,    canvas.height/4 -10]
-        ];
+                            [10,                  canvas.height/2 + 10,     canvas.width/2 -10, canvas.height/4 - 20], //選択肢1
+                            [canvas.width/2 + 10, canvas.height/2 + 10,     canvas.width/2 -10, canvas.height/4 - 20], //選択肢2
+                            [10,                  canvas.height/4 * 3 + 10, canvas.width/2 -10, canvas.height/4 - 20], //選択肢3
+                            [canvas.width/2 + 10, canvas.height/4 * 3 + 10, canvas.width/2 -10, canvas.height/4 - 20]  //選択肢4
+                        ];
         btlCtx.fillStyle = "rgb(0,0,0)";
         btlCtx.fillRect(choiceList[0][0],choiceList[0][1],choiceList[0][2],choiceList[0][3]);
         btlCtx.fillRect(choiceList[1][0],choiceList[1][1],choiceList[1][2],choiceList[1][3]);
         btlCtx.fillRect(choiceList[2][0],choiceList[2][1],choiceList[2][2],choiceList[2][3]);
         btlCtx.fillRect(choiceList[3][0],choiceList[3][1],choiceList[3][2],choiceList[3][3]);
+        ctx.drawImage(battleCanvas,0,0);
+        canvas.onclick = checkSelect;
 
-        let hit1 = hitCheck(choiceList[0][0],choiceList[0][1],choiceList[0][2],choiceList[0][3]);
-        let hit2 = hitCheck(choiceList[1][0],choiceList[1][1],choiceList[1][2],choiceList[1][3]);
-        let hit3 = hitCheck(choiceList[2][0],choiceList[2][1],choiceList[2][2],choiceList[2][3]);
-        let hit4 = hitCheck(choiceList[3][0],choiceList[3][1],choiceList[3][2],choiceList[3][3]);
+        async function checkSelect(){
+            let hit1 = hitCheck(choiceList[0][0],choiceList[0][1],choiceList[0][2],choiceList[0][3]);
+            let hit2 = hitCheck(choiceList[1][0],choiceList[1][1],choiceList[1][2],choiceList[1][3]);
+            let hit3 = hitCheck(choiceList[2][0],choiceList[2][1],choiceList[2][2],choiceList[2][3]);
+            let hit4 = hitCheck(choiceList[3][0],choiceList[3][1],choiceList[3][2],choiceList[3][3]);
 
-        if(hit1 || hit2 || hit3 || hit4){
-            if(hit1){
-                console.log("Selected choice 1");
-            }else if(hit2){
-                console.log("Selected choice 2");
-            }else if(hit3){
-                console.log("Selected choice 3");
-            }else if(hit4){
-                console.log("Selected choise 4");
+            if(hit1 || hit2 || hit3 || hit4){
+                if(hit1){
+                    console.log("Selected choice 1");
+                }else if(hit2){
+                    console.log("Selected choice 2");
+                }else if(hit3){
+                    console.log("Selected choice 3");
+                }else if(hit4){
+                    console.log("Selected choise 4");
+                }
             }
         }
-    }
         
     });
 }
@@ -610,27 +701,25 @@ function bossMain(){
 function openScroll(){
     remClick();
     console.log("Load imgBoxClose")
+    drawBG(scrollCanvas);
+    scrollCtx.drawImage(imageBoxClose, (canvas.width - imageBoxClose.width) / 2, (canvas.height - imageBoxClose.height) / 2);
+
+    scrollCtx.fillStyle = "rgb(200,200,0)";
+    scrollCtx.font = "italic bold 60px sans-serif";
+    let msg = "宝箱ゲット！"
+    let fontWidth = scrollCtx.measureText(msg).width;
+    scrollCtx.fillText(msg,(canvas.width-fontWidth)/2,(canvas.height/2)-200);
+
+
+    msg = "タッチして箱を開けよう！"
+    scrollCtx.fillStyle = "rgb(0,100,200)";
+    scrollCtx.font = "bold 40px sans-serif";
+    fontWidth = scrollCtx.measureText(msg).width;
+    scrollCtx.fillText(msg,(canvas.width-fontWidth)/2,(canvas.height/2)-100);
+
+    ctx.drawImage(scrollCanvas, 0, 0);
+
     canvas.onclick = openBox;
-
-    imageBoxClose.onload = function(){
-        drawBG(scrollCanvas);
-        scrollCtx.drawImage(imageBoxClose, (canvas.width - imageBoxClose.width) / 2, (canvas.height - imageBoxClose.height) / 2);
-
-        scrollCtx.fillStyle = "rgb(200,200,0)";
-        scrollCtx.font = "italic bold 60px sans-serif";
-        let msg = "宝箱ゲット！"
-        let fontWidth = scrollCtx.measureText(msg).width;
-        scrollCtx.fillText(msg,(canvas.width-fontWidth)/2,(canvas.height/2)-200);
-
-
-        msg = "タッチして箱を開けよう！"
-        scrollCtx.fillStyle = "rgb(0,100,200)";
-        scrollCtx.font = "bold 40px sans-serif";
-        fontWidth = scrollCtx.measureText(msg).width;
-        scrollCtx.fillText(msg,(canvas.width-fontWidth)/2,(canvas.height/2)-100);
-
-        ctx.drawImage(scrollCanvas, 0, 0);
-        };
 
     function openBox(){
         drawBG(scrollCanvas);
@@ -658,14 +747,16 @@ function openScroll(){
 //巻物表示ギミック
 function scrollSet(){
     remClick();
+
     let chapterIndex = 0;
     let stageIndex = 0;
     let scrLen = scrolls.length-1;
     let stage = "";
+    let stgClrBln = false;
 
 
     drawBG(scrollCanvas);
-    scrollCtx.drawImage(imagePlainScroll,10,10,canvas.width-20, canvas.height-20);
+    scrollCtx.drawImage(imagePlainScroll,30,30,canvas.width-20, canvas.height-20);
 
     for(i=0;i<=scrLen;i++){
         if(scrolls[i]<scrollMax[i]){
@@ -678,12 +769,14 @@ function scrollSet(){
             console.log(stage);
 
             let b = document.getElementById("st" + stage);
-            scrollCtx.drawImage(b,80,80,canvas.width-160,canvas.height-160);
+            scrollCtx.drawImage(b,30 + (imagePlainScroll.width/15),30 + (imagePlainScroll.height/15),canvas.width-(imagePlainScroll.width/15 * 2),canvas.height-(imagePlainScroll.height/15 * 2));
                     
-            let thisDiv = document.getElementById(stage);
-            thisDiv.setAttribute("onclick","showScroll('" + stage + "')");
-            thisDiv.innerText = "【取得済】" + stage;
-            console.log(scrolls);
+            scrollGet[chapterIndex][stageIndex] = 1;
+            console.log(scrollGet);
+            if(scrolls[i]==scrollMax[i]){
+                stgClrBln = true;
+            }
+
             break;
         }
     }
@@ -693,7 +786,9 @@ function scrollSet(){
         alert("Game Completed!! Congrats!!");
         console.log(scrolls);
         canvas.onclick = returnTitle;
-    }else{
+    }else if(stgClrBln){
+        canvas.onclick = bossMain;
+    } else{
         console.log(scrolls);
         canvas.onclick = walk;
     };
@@ -702,13 +797,82 @@ function scrollSet(){
 
 //巻物関係　要抜本改編
 //巻物の情報を取得するやつ
-function showScroll(stage){
-    let show = document.getElementById("scrollShow");
-    let thisScr = document.getElementById("st"+stage);
-    let thisPNG = new Image;
-    thisPNG.src = thisScr;
-
+function showScroll(){
+    console.log("show scr")
+    remClick();
     
+    imageBG.src = "./src/title.PNG"
+
+    imageBG.addEventListener("load", function(){
+        drawBG(scrollCanvas);
+
+        let pointSet = [ //[x座標始点, y座標始点, x座標横幅, y座標立幅, 表示内容]
+            [10,                        10,                         canvas.width/3 - 20, canvas.height / 4 - 20, "1章"], //1
+            [canvas.width / 3 + 10,     10,                         canvas.width/3 - 20, canvas.height / 4 - 20, "2章"], //2
+            [canvas.width / 3 * 2 + 10, 10,                         canvas.width/3 - 20, canvas.height / 4 - 20, "3章"], //3
+            [10,                        canvas.height / 4 + 10,     canvas.width/3 - 20, canvas.height / 4 - 20, "4章"], //4
+            [canvas.width / 3 + 10,     canvas.height / 4 + 10,     canvas.width/3 - 20, canvas.height / 4 - 20, "5章"], //5
+            [canvas.width / 3 * 2 + 10, canvas.height / 4 + 10,     canvas.width/3 - 20, canvas.height / 4 - 20, "6章"], //6
+            [10,                        canvas.height / 4 * 2 + 10, canvas.width/3 - 20, canvas.height / 4 - 20, "7章"], //7
+            [canvas.width / 3 + 10,     canvas.height / 4 * 2 + 10, canvas.width/3 - 20, canvas.height / 4 - 20, "8章"], //8
+            [canvas.width / 3 * 2 + 10, canvas.height / 4 * 2 + 10, canvas.width/3 - 20, canvas.height / 4 - 20, "9章"], //9
+            [canvas.width / 3 + 10,     canvas.height / 4 * 3 + 10, canvas.width/3 - 20, canvas.height / 4 - 20, "10章"], //10
+            [canvas.width / 3 * 2 + 10, canvas.height / 4 * 3 + 10, canvas.width/3 - 20, canvas.height / 4 - 20, "戻る"]  //戻る
+        ]
+
+        for(i=0;i<pointSet.length;i++){
+            console.log("set btn : " + i)
+            scrollCtx.fillStyle = "rgb(100,150,200)";
+            scrollCtx.fillRect(pointSet[i][0],pointSet[i][1],pointSet[i][2],pointSet[i][3]);
+
+            scrollCtx.fillStyle = "rgb(0,0,0)";
+            scrollCtx.font = "20px sans-selif";
+            let chpMsg = pointSet[i][4]; //ボタンに表示するメッセージ
+            let fontWidth = scrollCtx.measureText(chpMsg).width;
+            scrollCtx.fillText(chpMsg, pointSet[i][0] + (pointSet[i][2]- fontWidth) / 2, pointSet[i][1] + (pointSet[i][3]/2)+10);
+        }
+
+        ctx.drawImage(scrollCanvas,0,0);
+
+        canvas.onclick = function(){
+            console.log("scr click")
+            let hit1 = hitCheck(pointSet[0][0],pointSet[0][1],pointSet[0][2],pointSet[0][3])
+            let hit2 = hitCheck(pointSet[1][0],pointSet[1][1],pointSet[1][2],pointSet[1][3])
+            let hit3 = hitCheck(pointSet[2][0],pointSet[2][1],pointSet[2][2],pointSet[2][3])
+            let hit4 = hitCheck(pointSet[3][0],pointSet[3][1],pointSet[3][2],pointSet[3][3])
+            let hit5 = hitCheck(pointSet[4][0],pointSet[4][1],pointSet[4][2],pointSet[4][3])
+            let hit6 = hitCheck(pointSet[5][0],pointSet[5][1],pointSet[5][2],pointSet[5][3])
+            let hit7 = hitCheck(pointSet[6][0],pointSet[6][1],pointSet[6][2],pointSet[6][3])
+            let hit8 = hitCheck(pointSet[7][0],pointSet[7][1],pointSet[7][2],pointSet[7][3])
+            let hit9 = hitCheck(pointSet[8][0],pointSet[8][1],pointSet[8][2],pointSet[8][3])
+            let hit10 = hitCheck(pointSet[9][0],pointSet[9][1],pointSet[9][2],pointSet[9][3])
+            let hitRet = hitCheck(pointSet[10][0],pointSet[10][1],pointSet[10][2],pointSet[10][3])
+            if(hit1){
+                console.log("HIT1")
+            }else if(hit2){
+                console.log("HIT2")
+            }else if(hit3){
+                console.log("HIT3")
+            }else if(hit4){
+                console.log("HIT4")
+            }else if(hit5){
+                console.log("HIT5")
+            }else if(hit6){
+                console.log("HIT6")
+            }else if(hit7){
+                console.log("HIT7")
+            }else if(hit8){
+                console.log("HIT8")
+            }else if(hit9){
+                console.log("HIT9")
+            }else if(hit10){
+                console.log("HIT10")
+            }else if(hitRet){
+                remClick();
+                returnTitle();
+            }
+        }
+    })
 }
 
 
@@ -741,76 +905,6 @@ function scrollOpenScreen(){
 }
 
 //====================ここまで巻物の処理====================
-
-
-//タイトル画面に戻る汎用処理
-function returnTitle(){
-    clearInterval(minorBattleInterval);
-    canvas.onclick = clickCheckTitle;
-    ctx.drawImage(titleCanvas,0,0);
-    resetAllDiv();
-}
-
-
-//前の画面に戻る汎用処理
-function backScr(beforeScr, afterScr){
-    let bef = document.getElementById(beforeScr);
-    let aft = document.getElementById(afterScr);
-    bef.style.display = "none";
-    aft.style.display = "block";
-}
-
-//全画面初期化の汎用処理
-function resetAllDiv(){
-    let a = document.getElementsByTagName("div")
-    for(i=0; i<a.length; i++){
-        a[i].style.display = "none";
-    }
-    let x = document.getElementById("btnGroup");
-    x.style.display = "flex";
-
-    x = document.getElementById("showScreen");
-    x.style.display = "block";
-}
-
-function remClick(){
-    canvas.onclick = function(){
-        console.log("発火削除");
-    }
-}
-
-//クリック判定がボタン位置かを判定する関数
-//fillRectと同じ書き方にしてる
-function hitCheck(btnX, btnY, btnW, btnH){
-    let hit = (btnX <= mousePoint[0] && mousePoint[0] <= btnX + btnW)&&
-              (btnY <= mousePoint[1] && mousePoint[1] <= btnY + btnH);
-
-    if(hit){
-        return true;
-    }else{
-        return false;
-    }
-}
-
-
-//常時マウスの位置を取得
-//onclick発火時のマウス位置取得に利用
-canvas.addEventListener("mousemove", (e) => {
-    let rect = e.target.getBoundingClientRect()
-    let x = e.clientX - rect.left
-    let y = e.clientY - rect.top
-    mousePoint[0] = x;
-    mousePoint[1] = y;
-});
-
-//sleep関数 ミリ秒で使う
-function sleep(msec) {
-    return new Promise(function(resolve) {
-  
-       setTimeout(function() {resolve()}, msec);
-  
-    })
- }
 
 
 //初回起動時のタイトル画面読み込み処理
