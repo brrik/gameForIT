@@ -1,0 +1,15 @@
+{
+    // IntelliSense を使用して利用可能な属性を学べます。
+    // 既存の属性の説明をホバーして表示します。
+    // 詳細情報は次を確認してください: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "pwa-chrome",
+            "request": "launch",
+            "name": "Launch Chrome against localhost",
+            "url": "file:///C:/Users/USER/Documents/%E5%89%AF%E6%A5%AD/gameITPass/index.html",
+            "webRoot": "${workspaceFolder}"
+        }
+    ]
+}

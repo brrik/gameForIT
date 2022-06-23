@@ -51,7 +51,6 @@ let barrier = 0; //バリア発動フラグ
 let enmPoint = {}; //雑魚敵の座標処理
 let battleClear = false; //雑魚戦のクリア処理フラグ
 let minorBattleInterval = 0; //モブ戦闘時のsetIntervalのID入れる用変数
-let clearedCpt = [0,0,0,0,0,0,0,0,0,0] //章のクリアフラグ
 let scrolls = [0,0,0,0,0,0,0,0,0,0]; //巻物の進捗フラグ系
 let scrollGet = [       //巻物の取得フラグ
     [0,0,0,0,0,0,0,0],
@@ -141,6 +140,11 @@ tempCanvas.height = canvas.height;
 function returnTitle(){
     console.log("return title")
     remClick();
+    clearInterval(minorBattleInterval);    
+    ctx.drawImage(tempCanvas,0,0);
+    titleCtx.drawImage(tempCanvas,0,0);
+    scrollCtx.drawImage(tempCanvas,0,0);
+    btlCtx.drawImage(tempCanvas,0,0);
     canvas.onclick = title();
 }
 
@@ -154,12 +158,6 @@ function backScr(beforeScr, afterScr){
     aft.style.display = "block";
 }
 
-function fillCanvas(thisCanvas){
-    let thisCtx = thisCanvas.getContext("2d");
-    thisCtx.fillStyle="rgb(0,0,0)";
-    thisCtx.fillRect(0,0,canvas.width,canvas.height);
-    ctx.drawImage(thisCanvas,0,0);
-}
 
 function remClick(){
     console.log("remclick")
@@ -322,12 +320,9 @@ function title(){
 
 
 //歩く時の揺れる処理
-async function walk(){
+function walk(){
     console.log("walk");
     remClick();
-
-    fillCanvas(canvas);
-
     let cpt = 0;
     let stg = 0;
     let stgBg = 0;
@@ -345,23 +340,16 @@ async function walk(){
                 imageBG.src = "./src/bg_aftnoon.PNG";
             }
 
-            imageBG.onload = function(){
-                imageEnm.src = "./src/mons" + (cpt + 1) + ".PNG";
-                imageEnm.onload = function(){
-                    imageHitEnm.src = "./src/mons" + (cpt + 1) + "_atk.PNG";
-                    imageHitEnm.onload = function(){
-                        imageGrdEnm.src = "./src/mons" + (cpt + 1) + "_grd.PNG";
-                    }
-                }
-            }
+            imageEnm.src = "./src/mons" + (cpt + 1) + ".PNG";
+            imageHitEnm.src = "./src/mons" + (cpt + 1) + "_atk.PNG";
+            imageGrdEnm.src = "./src/mons" + (cpt + 1) + "_grd.PNG";
+            
 
             break;
         }
     }
 
-    fillCanvas(canvas);
-
-    imageGrdEnm.onload = function(){
+    imageBG.onload = function(){
         console.log("walking.....")
 
         //起動時の画面読み込み処理
@@ -379,7 +367,7 @@ async function walk(){
 
 
         //バトルスタートをX秒間表示し、バトルへ
-        setTimeout(async function(){
+        setTimeout(() => {
 
             btlCtx.drawImage(imageBG,0,0,canvas.width,canvas.height);
 
@@ -387,30 +375,56 @@ async function walk(){
             let times = Math.floor(Math.random() * 3)+1;
             console.log("times : "+times);
             btlCtx.drawImage(imageBG,0,0,canvas.width,canvas.height)
+            let thisTime = 0
 
-            for(i=0;i<=times;i++){                
+
+
+            let allWalk = setInterval(() => {
+                
+                let yStart = 0;
                 let yEnd = 50
-                for(d=0;d<=yEnd;d++){
+                let walkDown = setInterval(function(){
                     //沈み込む処理
+                    console.log("btlCtx y: "+yStart);
+
                     ctx.fillStyle = "rgb(0,0,0)";
                     ctx.fillRect(0,0,canvas.width,canvas.height);
-                    ctx.drawImage(battleCanvas,0,d);
-                    await sleep(5);
+                    ctx.drawImage(battleCanvas,0,yStart);
+                    yStart++;
+
+
+                    if(yStart >= yEnd){
+                        //立ち上がる処理
+                        clearInterval(walkDown);
+                        let walkUp = setInterval(function(){
+                            console.log("btlCtx y: "+yStart);
+
+                            ctx.fillStyle = "rgb(0,0,0)";
+                            ctx.fillRect(0,0,canvas.width,canvas.height);
+                            ctx.drawImage(battleCanvas,0,yStart);
+                            yStart--;
+
+
+                            if(yStart <= 0){
+                                //X秒経過後、インターバル解除
+                                clearInterval(walkUp);
+                                thisTime++;
+                            };
+                        },5)
+                        
+                    };
+                },5)
+                if(thisTime>=times){
+                    //規定回数超えたら次の処理へ
+                    clearInterval(allWalk);
+                    setTimeout(() => {
+                        //一応最後の立ち上がりを待つために1秒保留
+                        btlCtx.drawImage(imageBG,0,0,canvas.width,canvas.height)
+                        encountEnm();
+                    }, 1000);
                 }
-                for(u=50;u>=0;u--){
-                    ctx.fillStyle = "rgb(0,0,0)";
-                    ctx.fillRect(0,0,canvas.width,canvas.height);
-                    ctx.drawImage(battleCanvas,0,u);
-                    await sleep(5);
-                }
-                await sleep(100);
-            };
-            setTimeout(async function(){
-                //一応最後の立ち上がりを待つために1秒保留
-                btlCtx.drawImage(imageBG,0,0,canvas.width,canvas.height)
-                encountEnm();
             }, 1000);
-        },1000);
+        }, (1000));
     };
 }
 
@@ -498,7 +512,7 @@ async function encountEnm(){
     };
 
 
-    //雲からぼやっと出てくる処理
+
     for(i=10;i>=0;i--){
         console.log("alpha = "+i)
         ctx.globalAlpha = i * 0.1;
@@ -509,7 +523,6 @@ async function encountEnm(){
     }
     ctx.globalAlpha=1;
 
-    //ぶるぶる処理
     for(i=0;i<=4;i++){
 
         if(i%2==0){
@@ -530,59 +543,59 @@ async function encountEnm(){
 }
 
 
-async function minorBattle(){
+function minorBattle(){
     console.log("minor btl")
     remClick();
 
     minorBattleMusic.play();
+    
 
 
     //一定時間ごとに繰り返す処理
-    do{
+    function mainProc(){
         remClick();
         canvas.onclick = checkClickEnm;
         drawBG(battleCanvas);
         hpSet();
-        if(hitCount<=0){
-            break;
-        }
         enmPoint = drawEnm(battleCanvas);
         ctx.drawImage(battleCanvas,0,0);
         console.log(battleClear);
-        await sleep(loopTime);
-    }while(true);
-
-    await sleep(enmRect * 10 + 500);
-    openScroll();
-}
-
-//敵画像の処理
-function drawEnm(battleCanvas){
-    console.log("***Draw Enemy***");
-
-    barrier = Math.floor(Math.random() * enmBarrier);
-
-    let enmX = Math.floor(Math.random() * (canvas.width - enmRect));
-    let enmY = Math.floor(Math.random() * (canvas.height - enmRect - 80)) + 80;
-
-    const btlCtx = battleCanvas.getContext("2d");
-
-    if(barrier > 1){
-        drawBG(battleCanvas);
-        btlCtx.drawImage(imageGrdEnm, enmX, enmY, enmRect, enmRect)
     }
 
-    btlCtx.drawImage(imageEnm, enmX, enmY, enmRect, enmRect);
-    hpSet()
-    const enmPath = {
-        x : enmX,
-        y : enmY,
-        w : enmRect,
-        h : enmRect  
-    };
-    console.log("battleCanvas h:" + battleCanvas.height + " / battleCanvas w:" + battleCanvas.width);
-    console.log(enmPath);
-    return enmPath;
+    //敵画像の処理
+    function drawEnm(battleCanvas){
+        console.log("***Draw Enemy***");
+
+        barrier = Math.floor(Math.random() * enmBarrier);
+
+        let enmX = Math.floor(Math.random() * (canvas.width - enmRect));
+        let enmY = Math.floor(Math.random() * (canvas.height - enmRect - 80)) + 80;
+
+        const btlCtx = battleCanvas.getContext("2d");
+
+        if(barrier > 1){
+            drawBG(battleCanvas);
+            btlCtx.drawImage(imageGrdEnm, enmX, enmY, enmRect, enmRect)
+        }
+
+        btlCtx.drawImage(imageEnm, enmX, enmY, enmRect, enmRect);
+        hpSet()
+        const enmPath = {
+            x : enmX,
+            y : enmY,
+            w : enmRect,
+            h : enmRect  
+        };
+        console.log("battleCanvas h:" + battleCanvas.height + " / battleCanvas w:" + battleCanvas.width);
+        console.log(enmPath);
+        return enmPath;
+    }
+
+
+    //モブの一定間隔ジャンプ処理
+    minorBattleInterval = setInterval(mainProc,loopTime);
+    console.log("インターバル変数");
+    console.log(minorBattleInterval);
 }
 
 //クリック時の判定を追加
@@ -610,6 +623,7 @@ async function checkClickEnm(){
         
             hitCount = hitCount -3;
             if(hitCount<=0){
+                clearInterval(minorBattleInterval);
                 remClick();
 
                 //つぶれる処理
@@ -622,7 +636,7 @@ async function checkClickEnm(){
 
                 hitCount = hitCountFirst;
                 await sleep(1000)
-                return true;
+                openScroll();
             };
             /*
             drawBG(battleCanvas);
@@ -698,7 +712,7 @@ function bossHitCheck(){
 
 
 
-async function bossMain(){
+function bossMain(){
     console.log("come to bossMain");
     bossCtx.clearRect(0, 0, canvas.width, canvas.height);
     remClick();
@@ -715,28 +729,29 @@ async function bossMain(){
         console.log(i);
     }
 
-    imageEnm.src = "./src/boss" + (bossIndex + 1) + ".PNG"
-    imageEnm.onload = function(){
-        imageBG.src = "./src/bg_night.PNG"
-        imageBG.onload = async function(){
-            
-            drawBG(bossCanvas);
+    imageEnm.src = "src/boss" + (bossIndex + 1) + ".PNG"
+    imageBG.src = "./src/bg_night.PNG"
+    imageBG.onload = function(){
+        
+        drawBG(bossCanvas);
 
-            bossCtx.drawImage(imageEnm,canvas.width/4,canvas.height/4,canvas.width/2,canvas.height/2);
+        bossCtx.drawImage(imageEnm,canvas.width/4,canvas.height/4,canvas.width/2,canvas.height/2);
 
-            bossCtx.fillStyle="rgb(100,100,200)";
-            bossCtx.fillRect(10,10,canvas.width-20,100);
+        bossCtx.fillStyle="rgb(100,100,200)";
+        bossCtx.fillRect(10,10,canvas.width-20,100);
 
-            bossCtx.fillStyle = "rgb(0,0,0)";
-            bossCtx.font = "italic bold 30px sans-serif";
-            let msg = "よく来たな・・・この問題が解けるか！？"
-            let fontWidth = bossCtx.measureText(msg).width;
-            bossCtx.fillText(msg,(canvas.width-fontWidth)/2,150);
+        bossCtx.fillStyle = "rgb(0,0,0)";
+        bossCtx.font = "italic bold 30px sans-serif";
+        let msg = "よく来たな・・・この問題が解けるか！？"
+        let fontWidth = bossCtx.measureText(msg).width;
+        bossCtx.fillText(msg,(canvas.width-fontWidth)/2,150);
 
-            ctx.drawImage(bossCanvas,0,0);
-
-            let bossBeat = false
+        ctx.drawImage(bossCanvas,0,0);
+        let bossCheckInterval = setInterval(function(){
+            console.log("int")
             canvas.onclick = function(){
+                clearInterval(bossCheckInterval);
+                console.log("hoge");
                 remClick();
                 imageEnm.src = "./boss/cpt" + (bossIndex+1) + "/q" + qNum + ".png";
 
@@ -754,44 +769,46 @@ async function bossMain(){
                     bossCtx.fillRect(choiceList[2][0],choiceList[2][1],choiceList[2][2],choiceList[2][3]);
                     bossCtx.fillRect(choiceList[3][0],choiceList[3][1],choiceList[3][2],choiceList[3][3]);
                     ctx.drawImage(bossCanvas,0,0);
+                    
+                    let waitChoice = setInterval(function(){
+                        console.log("wait");
+                        canvas.onclick = function(){;
+                            let hit1 = hitCheck(choiceList[0][0],choiceList[0][1],choiceList[0][2],choiceList[0][3]);
+                            let hit2 = hitCheck(choiceList[1][0],choiceList[1][1],choiceList[1][2],choiceList[1][3]);
+                            let hit3 = hitCheck(choiceList[2][0],choiceList[2][1],choiceList[2][2],choiceList[2][3]);
+                            let hit4 = hitCheck(choiceList[3][0],choiceList[3][1],choiceList[3][2],choiceList[3][3]);
 
-                    canvas.onclick = function(){;
-                        let hit1 = hitCheck(choiceList[0][0],choiceList[0][1],choiceList[0][2],choiceList[0][3]);
-                        let hit2 = hitCheck(choiceList[1][0],choiceList[1][1],choiceList[1][2],choiceList[1][3]);
-                        let hit3 = hitCheck(choiceList[2][0],choiceList[2][1],choiceList[2][2],choiceList[2][3]);
-                        let hit4 = hitCheck(choiceList[3][0],choiceList[3][1],choiceList[3][2],choiceList[3][3]);
-
-                        if(hit1 || hit2 || hit3 || hit4){
-                            remClick();
-                            if(hit1){
-                                console.log("Selected choice 1");
-                                choice = 1;
-                            }else if(hit2){
-                                console.log("Selected choice 2");
-                                choice = 2;
-                            }else if(hit3){
-                                console.log("Selected choice 3");
-                                choice = 3;
-                            }else if(hit4){
-                                console.log("Selected choise 4");
-                                choice = 4
-                            }
-                            
-                            if(choice == bossQuizAns[bossIndex][qNum]){
-                                console.log("seikai");
-                                clearedCpt[bossIndex] = 1;
-                                fillCanvas(bossCanvas);
-                                returnTitle();
-                            }else{
-                                console.log("huseikai");
-                                fillCanvas(bossCanvas);
-                                returnTitle();
+                            if(hit1 || hit2 || hit3 || hit4){
+                                remClick();
+                                if(hit1){
+                                    console.log("Selected choice 1");
+                                    choice = 1;
+                                }else if(hit2){
+                                    console.log("Selected choice 2");
+                                    choice = 2;
+                                }else if(hit3){
+                                    console.log("Selected choice 3");
+                                    choice = 3;
+                                }else if(hit4){
+                                    console.log("Selected choise 4");
+                                    choice = 4
+                                }
+                                
+                                if(choice == bossQuizAns[bossIndex][qNum]){
+                                    console.log("seikai");
+                                    clearInterval(waitChoice);
+                                    returnTitle();
+                                }else{
+                                    console.log("huseikai");
+                                    clearInterval(waitChoice);
+                                    returnTitle();
+                                };
                             };
                         };
-                    };
+                    },33);
                 };
             };
-        }
+        },33)
     }
 }
 
@@ -879,11 +896,7 @@ function scrollSet(){
             console.log(scrollGet);
             scrolls[i]++;
 
-            if(clearedCpt[i]==0 && scrolls[i]==scrollMax[i]){
-                console.log("THIS IS FIRST CLEAR!")
-                console.log(clearedCpt)
-                console.log(scrolls);
-                console.log(scrollMax);
+            if(scrolls[i]==scrollMax[i]){
                 stgClrBln = true;
             }
 
@@ -909,10 +922,12 @@ function scrollSet(){
     canvas.onclick = function(){
         if(scrolls[scrolls.length-1]==scrollMax[scrollMax.length-1]){
             alert("Game Completed!! Congrats!!");
+            console.log(scrolls);
             returnTitle();
         }else if(stgClrBln){
             bossHitCheck();
         }else{
+            console.log(scrolls);
             console.log("go to walk")
             walk();
         };
