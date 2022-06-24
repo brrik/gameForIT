@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="jp">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style/style.css">
+    <title>Document</title>
+</head>
+<body>
+    <!--巻物全体のリスト-->
+    <div id="chpScroll" background="src/title.PNG">
+        <table>
+            <tr>
+                <td onclick="scrChpSelect(1);">Stage 1</td>
+                <td onclick="scrChpSelect(2);">Stage 2</td>
+                <td onclick="scrChpSelect(3);">Stage 3</td>
+            </tr>
+            <tr>
+                <td onclick="scrChpSelect(4);">Stage 4</td>
+                <td onclick="scrChpSelect(5);">Stage 5</td>
+                <td onclick="scrChpSelect(6);">Stage 6</td>
+            </tr>
+            <tr>
+                <td onclick="scrChpSelect(7);">Stage 7</td>
+                <td onclick="scrChpSelect(8);">Stage 8</td>
+                <td onclick="scrChpSelect(9);">Stage 9</td>
+            </tr>
+            <tr>
+                <td colspan="3" onclick="scrChpSelect(10);">Stage 10</td>
+            </tr>
+        </table>
+        <button onclick="backScr('chpScroll','showScreen')">戻る</button>
+    </div>
+
+
+    <!--各章の巻物リスト-->
+    <div id="chp1" class="stageList">
+        <table>
+            <tr>
+                <td id="1-1">Scroll 1</td>
+                <td id="1-2">Scroll 2</td>
+                <td id="1-3">Scroll 3</td>
+            </tr>
+            <tr>
+                <td id="1-4">Scroll 4</td>
+                <td id="1-5">Scroll 5</td>
+                <td id="1-6">Scroll 6</td>
+            </tr>
+            <tr>
+                <td id="1-7">Scroll 7</td>
+                <td id="1-8">Scroll 8</td>
+                <td id="1-9">Scroll 9</td>
+            </tr>
+            <tr>
+                <td colspan="3" id="1-10">Scroll 10</td>
+            </tr>
+        </table>
+        <button onclick="backScr('chp1','chpScroll')">戻る</button>
+    </div>
+    <div id="chp2" class="stageList">
+        <table>
+            <tr>
+                <td id="2-1">Scroll 1</td>
+                <td id="2-2">Scroll 2</td>
+                <td id="2-3">Scroll 3</td>
+            </tr>
+            <tr>
+                <td id="2-4">Scroll 4</td>
+                <td id="2-5">Scroll 5</td>
+                <td id="2-6">Scroll 6</td>
+            </tr>
+            <tr>
+                <td id="2-7">Scroll 7</td>
+                <td id="2-8">Scroll 8</td>
+                <td id="2-9">Scroll 9</td>
+            </tr>
+            <tr>
+                <td colspan="3" id="2-10">Scroll 10</td>
+            </tr>
+        </table>
+        <button onclick="backScr('chp2','chpScroll')">戻る</button>
+    </div>
+    <div id="chp3" class="stageList">
+        <table>
+            <tr>
+                <td id="3-1">Scroll 1</td>
+                <td id="3-2">Scroll 2</td>
+                <td id="3-3">Scroll 3</td>
+            </tr>
+            <tr>
+                <td id="3-4">Scroll 4</td>
+                <td id="3-5">Scroll 5</td>
+                <td id="3-6">Scroll 6</td>
+            </tr>
+            <tr>
+                <td id="3-7">Scroll 7</td>
+                <td id="3-8">Scroll 8</td>
+                <td id="3-9">Scroll 9</td>
+            </tr>
+            <tr>
+                <td colspan="3" id="3-10">Scroll 10</td>
+            </tr>
+        </table>
+        <button onclick="backScr('chp3','chpScroll')">戻る</button>
+    </div>
+    <div id="chp4" class="stageList">
+        <table>
+            <tr>
+                <td id="4-1">Scroll 1</td>
+                <td id="4-2">Scroll 2</td>
+                <td id="4-3">Scroll 3</td>
+            </tr>
+            <tr>
+                <td id="4-4">Scroll 4</td>
+                <td id="4-5">Scroll 5</td>
+                <td id="4-6">Scroll 6</td>
+            </tr>
+            <tr>
+                <td id="4-7">Scroll 7</td>
+                <td id="4-8">Scroll 8</td>
+                <td id="4-9">Scroll 9</td>
+            </tr>
+            <tr>
+                <td colspan="3" id="4-10">Scroll 10</td>
+            </tr>
+        </table>
+        <button onclick="backScr('chp4','chpScroll')">戻る</button>
+    </div>
+    <div id="chp5" class="stageList">
+        <table>
+            <tr>
+                <td id="5-1">Scroll 1</td>
+                <td id="5-2">Scroll 2</td>
+                <td id="5-3">Scroll 3</td>
+            </tr>
+            <tr>
+                <td id="5-4">Scroll 4</td>
+                <td id="5-5">Scroll 5</td>
+                <td id="5-6">Scroll 6</td>
+            </tr>
+            <tr>
+                <td id="5-7">Scroll 7</td>
+                <td id="5-8">Scroll 8</td>
+                <td id="5-9">Scroll 9</td>
+            </tr>
+            <tr>
+                <td colspan="3" id="5-10">Scroll 10</td>
+            </tr>
+        </table>
+        <button onclick="backScr('chp5','chpScroll')">戻る</button>
+    </div>
+    
+
+
+    <div id="showScreen">
+        <canvas id="MainC"></canvas>
+    </div>
+
+
+    <div id="scrList"> <!--ここのDIVに巻物の内容を記載する-->  
+        <img id='st1-1' src='slides/cpt1/sl1.jpeg' alt=''>
+        <img id='st1-2' src='slides/cpt1/sl2.jpeg' alt=''>
+        <img id='st1-3' src='slides/cpt1/sl3.jpeg' alt=''>
+        <img id='st1-4' src='slides/cpt1/sl4.jpeg' alt=''>
+        <img id='st1-5' src='slides/cpt1/sl5.jpeg' alt=''>
+        <img id='st1-6' src='slides/cpt1/sl6.jpeg' alt=''>
+        <img id='st1-7' src='slides/cpt1/sl7.jpeg' alt=''>
+        <img id='st1-8' src='slides/cpt1/sl8.jpeg' alt=''>
+        <img id='st2-1' src='slides/cpt2/sl9.jpeg' alt=''>
+        <img id='st2-2' src='slides/cpt2/sl10.jpeg' alt=''>
+        <img id='st2-3' src='slides/cpt2/sl11.jpeg' alt=''>
+        <img id='st2-4' src='slides/cpt2/sl12.jpeg' alt=''>
+        <img id='st2-5' src='slides/cpt2/sl13.jpeg' alt=''>
+        <img id='st2-6' src='slides/cpt2/sl14.jpeg' alt=''>
+        <img id='st2-7' src='slides/cpt2/sl15.jpeg' alt=''>
+        <img id='st3-1' src='slides/cpt3/sl16.jpeg' alt=''>
+        <img id='st3-2' src='slides/cpt3/sl17.jpeg' alt=''>
+        <img id='st3-3' src='slides/cpt3/sl18.jpeg' alt=''>
+        <img id='st3-4' src='slides/cpt3/sl19.jpeg' alt=''>
+        <img id='st4-1' src='slides/cpt4/sl20.jpeg' alt=''>
+        <img id='st4-2' src='slides/cpt4/sl21.jpeg' alt=''>
+        <img id='st4-3' src='slides/cpt4/sl22.jpeg' alt=''>
+        <img id='st4-4' src='slides/cpt4/sl23.jpeg' alt=''>
+        <img id='st4-5' src='slides/cpt4/sl24.jpeg' alt=''>
+        <img id='st4-6' src='slides/cpt4/sl25.jpeg' alt=''>
+        <img id='st4-7' src='slides/cpt4/sl26.jpeg' alt=''>
+        <img id='st4-8' src='slides/cpt4/sl27.jpeg' alt=''>
+        <img id='st5-1' src='slides/cpt5/sl28.jpeg' alt=''>
+        <img id='st5-2' src='slides/cpt5/sl29.jpeg' alt=''>
+        <img id='st5-3' src='slides/cpt5/sl30.jpeg' alt=''>
+        <img id='st5-4' src='slides/cpt5/sl31.jpeg' alt=''>
+        <img id='st5-5' src='slides/cpt5/sl32.jpeg' alt=''>
+        <img id='st5-6' src='slides/cpt5/sl33.jpeg' alt=''>
+        <img id='st6-1' src='slides/cpt6/sl34.jpeg' alt=''>
+        <img id='st6-2' src='slides/cpt6/sl35.jpeg' alt=''>
+        <img id='st6-3' src='slides/cpt6/sl36.jpeg' alt=''>
+        <img id='st6-4' src='slides/cpt6/sl37.jpeg' alt=''>
+        <img id='st6-5' src='slides/cpt6/sl38.jpeg' alt=''>
+        <img id='st7-1' src='slides/cpt7/sl39.jpeg' alt=''>
+        <img id='st7-2' src='slides/cpt7/sl40.jpeg' alt=''>
+        <img id='st7-3' src='slides/cpt7/sl41.jpeg' alt=''>
+        <img id='st7-4' src='slides/cpt7/sl42.jpeg' alt=''>
+        <img id='st8-1' src='slides/cpt8/sl43.jpeg' alt=''>
+        <img id='st8-2' src='slides/cpt8/sl44.jpeg' alt=''>
+        <img id='st8-3' src='slides/cpt8/sl45.jpeg' alt=''>
+        <img id='st8-4' src='slides/cpt8/sl46.jpeg' alt=''>
+        <img id='st9-1' src='slides/cpt9/sl47.jpeg' alt=''>
+        <img id='st9-2' src='slides/cpt9/sl48.jpeg' alt=''>
+        <img id='st9-3' src='slides/cpt9/sl49.jpeg' alt=''>
+        <img id='st9-4' src='slides/cpt9/sl50.jpeg' alt=''>
+        <img id='st9-5' src='slides/cpt9/sl51.jpeg' alt=''>
+        <img id='st9-6' src='slides/cpt9/sl52.jpeg' alt=''>
+        <img id='st9-7' src='slides/cpt9/sl53.jpeg' alt=''>
+        <img id='st9-8' src='slides/cpt9/sl54.jpeg' alt=''>
+        <img id='st10-1' src='slides/cpt10/sl55.jpeg' alt=''>
+        <img id='st10-2' src='slides/cpt10/sl56.jpeg' alt=''>
+        <img id='st10-3' src='slides/cpt10/sl57.jpeg' alt=''>
+        <img id='st10-4' src='slides/cpt10/sl58.jpeg' alt=''>
+    </div>
+    <div id="SEs">
+        <audio id="seGrd"   src="./se/grd.mp3" preload="auto"><p>お使いのデバイスでは再生できません。</p></audio>
+        <audio id="seCloud" src="./se/cloud.mp3" preload="auto"><p>お使いのデバイスでは再生できません。</p></audio>
+        <audio id="seHit"   src="./se/hit.mp3" preload="auto"><p>お使いのデバイスでは再生できません。</p></audio>
+        <audio id="seWalk"  src="./se/walk.mp3" preload="auto"><p>お使いのデバイスでは再生できません。</p></audio>
+    </div>
+
+    <script src="script/script.js"></script>
+</body>
+</html>

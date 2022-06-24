@@ -14,10 +14,10 @@ TASKS
 
 //必要に応じて調整がいる項目
 const loopTime = 800; //モブがワープする時間間隔(ミリ秒：1000で1秒)
-const enmRect = 100; //敵モブの大きさ　初期設定:100
+const enmRect = 200; //敵モブの大きさ　初期設定:200
 let hitCountFirst = 3 //敵モブの体力　初期設定30
 const enmBarrier = 3; //敵モブのバリア動作率　初期設定3　＝　1/3でバリア解除状態
-const scrollMax = [1,7,4,8,6,5,4,4,8,4]; //各章のステージ数
+const scrollMax = [8,7,4,8,6,5,4,4,8,4]; //各章のステージ数
 const stageBG = [   //1:朝　2:昼　3:夕　　各ステージの読み込む背景画像
     [1,1,1,2,2,3,3,3], //1章
     [1,1,1,2,2,3,3], //2章
@@ -90,10 +90,10 @@ imagePlainScroll.src = "./src/plainScroll.png"
 
 
 //音楽読み込み用のバッファ　最初に読み込んでおくことで処理高速化と安定化
-const titleMusic = new Audio(""); titleMusic.loop = true;
-const minorBattleMusic = new Audio(""); minorBattleMusic.loop = true;
-const bossBattleMusic = new Audio(""); bossBattleMusic.loop = true;
-
+const seGrd = document.getElementById("seGrd");
+const seCloud = document.getElementById("seCloud");
+const seHit = document.getElementById("seHit");
+const seWalk = document.getElementById("seWalk");
 
 //ゲーム画面の初期化
 //複数の画面を仮想的に用意して、それをメインキャンバスにコピーすることで画面変遷を実装
@@ -219,8 +219,6 @@ function title(){
     remClick();
     const titleImg = new Image();
     titleImg.src = "./src/title.PNG";
-    const btnImg = new Image();
-    btnImg.src = ""
 
 
     //x：定数
@@ -251,6 +249,13 @@ function title(){
     titleImg.onload = function(){
 
         titleCtx.drawImage(titleImg,0,0,titleCanvas.width,titleCanvas.height);
+
+        titleCtx.font = "bold 100px sans-serif";
+        let titleMsg = "ITパスポート"; //ボタンに表示するメッセージ
+        titleCtx.fillStyle = "rgb(20,20,20)";
+        let titleWidth = titleCtx.measureText(titleMsg).width;
+        titleCtx.fillText(titleMsg, (canvas.width - titleWidth) / 2, canvas.height/3);
+
 
         //本番用　ボタン素材できたら置き換え
         /*
@@ -309,7 +314,7 @@ function title(){
                 showScroll();
             }else if(bossHit){
                 console.log("go to bossHit")
-                bossHitCheck();
+                bossHitCheck(false);
             }
         };
     };
@@ -331,7 +336,7 @@ async function walk(){
     let cpt = 0;
     let stg = 0;
     let stgBg = 0;
-    for(i=0;i<scrolls.length-1;i++){
+    for(i=0;i<scrolls.length;i++){
         if(scrolls[i]<scrollMax[i]){
             cpt = i;
             stg = scrolls[i];
@@ -346,11 +351,11 @@ async function walk(){
             }
 
             imageBG.onload = function(){
-                imageEnm.src = "./src/mons" + (cpt + 1) + ".PNG";
+                imageEnm.src = "./src/mons" + cpt + ".PNG";
                 imageEnm.onload = function(){
-                    imageHitEnm.src = "./src/mons" + (cpt + 1) + "_atk.PNG";
+                    imageHitEnm.src = "./src/mons" + cpt + "_atk.PNG";
                     imageHitEnm.onload = function(){
-                        imageGrdEnm.src = "./src/mons" + (cpt + 1) + "_grd.PNG";
+                        imageGrdEnm.src = "./src/mons" + cpt + "_grd.PNG";
                     }
                 }
             }
@@ -387,7 +392,7 @@ async function walk(){
             let times = Math.floor(Math.random() * 3)+1;
             console.log("times : "+times);
             btlCtx.drawImage(imageBG,0,0,canvas.width,canvas.height)
-
+            seWalk.play();
             for(i=0;i<=times;i++){                
                 let yEnd = 50
                 for(d=0;d<=yEnd;d++){
@@ -405,6 +410,8 @@ async function walk(){
                 }
                 await sleep(100);
             };
+            seWalk.pause();
+            seWalk.currentTime = 0;
             setTimeout(async function(){
                 //一応最後の立ち上がりを待つために1秒保留
                 btlCtx.drawImage(imageBG,0,0,canvas.width,canvas.height)
@@ -444,6 +451,7 @@ async function encountEnm(){
 
     let bln = 0;
 
+    seCloud.play();
     for(i=0;i<=imgMax;i++){
 
         if(i==clPosSet[0] && bln==0){
@@ -496,7 +504,8 @@ async function encountEnm(){
         ctx.drawImage(battleCanvas,0,0);
         await sleep(waitSec);
     };
-
+    seCloud.pause();
+    seCloud.currentTime=0;
 
     //雲からぼやっと出てくる処理
     for(i=10;i>=0;i--){
@@ -534,7 +543,6 @@ async function minorBattle(){
     console.log("minor btl")
     remClick();
 
-    minorBattleMusic.play();
 
 
     //一定時間ごとに繰り返す処理
@@ -600,6 +608,7 @@ async function checkClickEnm(){
             btlCtx.drawImage(imageHitEnm, enmPoint.x, enmPoint.y, enmRect, enmRect);
             ctx.drawImage(battleCanvas,0,0);
             hpSet();
+            seHit.play();
             ctx.fillStyle="red";
             ctx.font = '48px serif';
             ctx.fillText("HIT!!", enmPoint.x, enmPoint.y);
@@ -613,9 +622,9 @@ async function checkClickEnm(){
                 remClick();
 
                 //つぶれる処理
-                for(i=0;i<enmRect;i++){
+                for(i=0;i<(enmRect/2);i++){
                     drawBG(battleCanvas);
-                    btlCtx.drawImage(imageEnm,enmPoint.x,enmPoint.y + i, enmRect, enmRect - i);
+                    btlCtx.drawImage(imageEnm,enmPoint.x,enmPoint.y + (i*2), enmRect, enmRect - (i*2));
                     ctx.drawImage(battleCanvas,0,0);
                     await sleep(10)
                 }
@@ -631,6 +640,7 @@ async function checkClickEnm(){
             */
         }else{
             hpSet();
+            seGrd.play();
             ctx.fillStyle="yellow";
             ctx.font = '48px serif';
             ctx.fillText('Blocked!', enmPoint.x, enmPoint.y);
@@ -667,7 +677,7 @@ function hpSet(){
 
 
 //===================ここからボス戦時の処理====================
-function bossHitCheck(){
+function bossHitCheck(toDirectBoss){
     console.log("bossHitCheck")
     remClick();
     let scrLen = scrolls.length-1;
@@ -681,22 +691,140 @@ function bossHitCheck(){
             bossHitIndex = i + 1;
         }
     }
-
-    if(bossHitIndex>0){
-        bossMain();
-    }else{
-        ctx.fillStyle = "rgb(255,255,255)";
-        ctx.font = "50px sans-selif";
-        let msg = "挑めるボスはいないようだ・・・"; //ボタンに表示するメッセージ
-        let fontWidth = ctx.measureText(msg).width;
-        ctx.fillText(msg,(canvas.width - fontWidth) / 2, (canvas.height/2)+10);
-        canvas.onclick = returnTitle;
+    if(toDirectBoss == true){
+        beforeBossScr(bossHitIndex);
+    }else if(toDirectBoss == false){
+        if(bossHitIndex>0){
+            bossMain();
+        }else{
+            ctx.fillStyle = "rgb(255,255,255)";
+            ctx.font = "50px sans-selif";
+            let msg = "挑めるボスはいないようだ・・・"; //ボタンに表示するメッセージ
+            let fontWidth = ctx.measureText(msg).width;
+            ctx.fillText(msg,(canvas.width - fontWidth) / 2, (canvas.height/2)+10);
+            canvas.onclick = returnTitle;
+        }
     }
-
-
 }
 
+function beforeBossScr(stg){
+    remClick();
+    drawBG(scrollCanvas);
+    let stgMsg ="";
+    stg = stg - 1;
+    
+    let pointSet = [ //[x座標始点, y座標始点, x座標横幅, y座標立幅, 表示内容]
+        [10,                        10,                         canvas.width/4 - 60, canvas.height / 4 - 60, "ステージ1"], //1
+        [canvas.width / 4 * 1 + 10, 10,                         canvas.width/4 - 60, canvas.height / 4 - 60, "ステージ2"], //2
+        [canvas.width / 4 * 2 + 10, 10,                         canvas.width/4 - 60, canvas.height / 4 - 60, "ステージ3"], //3
+        [canvas.width / 4 * 3 + 10, 10,                         canvas.width/4 - 60, canvas.height / 4 - 60, "ステージ4"], //4
+        [10,                        canvas.height / 4 + 10,     canvas.width/4 - 60, canvas.height / 4 - 60, "ステージ5"], //5
+        [canvas.width / 4 * 1 + 10, canvas.height / 4 + 10,     canvas.width/4 - 60, canvas.height / 4 - 60, "ステージ6"], //6
+        [canvas.width / 4 * 2 + 10, canvas.height / 4 + 10,     canvas.width/4 - 60, canvas.height / 4 - 60, "ステージ7"], //7
+        [canvas.width / 4 * 3 + 10, canvas.height / 4 + 10,     canvas.width/4 - 60, canvas.height / 4 - 60, "ステージ8"], //8
+        [canvas.width / 10,         canvas.height - 60, canvas.width - ((canvas.width / 10) * 2), 50, "ボス戦に挑む！"]  //戻る
+    ]
 
+    for(i=0;i<scrollGet.length;i++){
+        let tempScr = scrollGet[i];
+
+        for(j=0;j<tempScr.length;j++){
+            console.log("set btn : " + j)
+            console.log(scrollGet[stg][j])
+            scrollCtx.fillStyle = "rgb(100,150,200)";
+            scrollCtx.fillRect(pointSet[j][0],pointSet[j][1],pointSet[j][2],pointSet[j][3]);
+
+            if(scrollGet[stg][j]==1){
+                stgMsg = pointSet[j][4]; //ボタンに表示するメッセージ
+            }else{
+                stgMsg = "未取得"; //ボタンに表示するメッセージ
+            }
+
+            scrollCtx.fillStyle = "rgb(0,0,0)";
+            scrollCtx.font = "20px sans-selif";
+            let fontWidth = scrollCtx.measureText(stgMsg).width;
+            scrollCtx.fillText(stgMsg, pointSet[j][0] + (pointSet[j][2]- fontWidth) / 2, pointSet[j][1] + (pointSet[j][3]/2)+10);
+        }
+    }
+
+    //戻るボタンだけ別処理
+    scrollCtx.fillStyle = "rgb(100,150,200)";
+    scrollCtx.fillRect(pointSet[8][0],pointSet[8][1],pointSet[8][2],pointSet[8][3]);
+
+    scrollCtx.fillStyle = "rgb(0,0,0)";
+    scrollCtx.font = "20px sans-selif";
+    stgMsg = pointSet[8][4]; //ボタンに表示するメッセージ
+    let fontWidth = scrollCtx.measureText(stgMsg).width;
+    scrollCtx.fillText(stgMsg, pointSet[8][0] + (pointSet[8][2]- fontWidth) / 2, pointSet[8][1] + (pointSet[8][3]/2)+10);
+
+
+
+    ctx.drawImage(scrollCanvas,0,0);
+
+    let thisStg = 0;
+
+    canvas.onclick = function(){
+        console.log("scr click")
+        let scrhit1 = hitCheck(pointSet[0][0],pointSet[0][1],pointSet[0][2],pointSet[0][3])
+        let scrhit2 = hitCheck(pointSet[1][0],pointSet[1][1],pointSet[1][2],pointSet[1][3])
+        let scrhit3 = hitCheck(pointSet[2][0],pointSet[2][1],pointSet[2][2],pointSet[2][3])
+        let scrhit4 = hitCheck(pointSet[3][0],pointSet[3][1],pointSet[3][2],pointSet[3][3])
+        let scrhit5 = hitCheck(pointSet[4][0],pointSet[4][1],pointSet[4][2],pointSet[4][3])
+        let scrhit6 = hitCheck(pointSet[5][0],pointSet[5][1],pointSet[5][2],pointSet[5][3])
+        let scrhit7 = hitCheck(pointSet[6][0],pointSet[6][1],pointSet[6][2],pointSet[6][3])
+        let scrhit8 = hitCheck(pointSet[7][0],pointSet[7][1],pointSet[7][2],pointSet[7][3])
+        let goBoss = hitCheck(pointSet[8][0],pointSet[8][1],pointSet[8][2],pointSet[8][3])
+        if(scrhit1){
+            thisStg = 1;
+        }else if(scrhit2){
+            thisStg = 2;
+        }else if(scrhit3){
+            thisStg = 3;
+        }else if(scrhit4){
+            thisStg = 4;
+        }else if(scrhit5){
+            thisStg = 5;
+        }else if(scrhit6){
+            thisStg = 6;
+        }else if(scrhit7){
+            thisStg = 7;
+        }else if(scrhit8){
+            thisStg = 8;
+        }else if(goBoss){
+            bossMain();
+        }
+
+        console.log(stg);
+        console.log(scrollMax[stg]);
+        console.log(thisStg);
+        if(scrollMax[stg] >= thisStg-1 && scrollGet[stg][thisStg] == 1){
+            stg = stg + 1
+            directScrShow(stg,thisStg);
+        }
+
+    }
+}
+
+function directScrShow(cpt,stg){
+    remClick();
+    drawBG(scrollCanvas);
+    scrollCtx.drawImage(imagePlainScroll,30,30,canvas.width-30, canvas.height-30);
+    stage = cpt + "-" + stg;
+    console.log(stage);
+
+    let b = document.getElementById("st" + stage);
+    scrollCtx.drawImage(b,30 + (imagePlainScroll.width/5),
+                        30 + (imagePlainScroll.height/5),
+                        canvas.width - 30 - ((imagePlainScroll.width/5) * 2),
+                        canvas.height - 30 - ((imagePlainScroll.height/5) * 2));
+    
+    ctx.drawImage(scrollCanvas,0,0);
+
+    canvas.onclick = function(){
+        remClick();
+        beforeBossScr(cpt);    
+    }
+}
 
 async function bossMain(){
     console.log("come to bossMain");
@@ -706,7 +834,6 @@ async function bossMain(){
     let scrLen = scrolls.length-1;
     let bossIndex = 0;
     let choice = 0;
-    let qNum = 1;
 
     for(i=0;i<=scrLen;i++){
         if(scrolls[i]==scrollMax[i]){
@@ -714,45 +841,47 @@ async function bossMain(){
         }
         console.log(i);
     }
+    let qNum = clearedCpt[bossIndex] + 1;
 
-    imageEnm.src = "./src/boss" + (bossIndex + 1) + ".PNG"
+    imageEnm.src = "./src/boss" + bossIndex + ".PNG"
     imageEnm.onload = function(){
         imageBG.src = "./src/bg_night.PNG"
         imageBG.onload = async function(){
             
             drawBG(bossCanvas);
 
-            bossCtx.drawImage(imageEnm,canvas.width/4,canvas.height/4,canvas.width/2,canvas.height/2);
+            bossCtx.drawImage(imageEnm,canvas.width/4,70,canvas.width/2,canvas.width/2);
 
             bossCtx.fillStyle="rgb(100,100,200)";
             bossCtx.fillRect(10,10,canvas.width-20,100);
 
             bossCtx.fillStyle = "rgb(0,0,0)";
             bossCtx.font = "italic bold 30px sans-serif";
-            let msg = "よく来たな・・・この問題が解けるか！？"
+            let msg = "さぁ・・・この問題が解けるか！？"
             let fontWidth = bossCtx.measureText(msg).width;
-            bossCtx.fillText(msg,(canvas.width-fontWidth)/2,150);
+            bossCtx.fillText(msg,(canvas.width-fontWidth)/2,60);
 
             ctx.drawImage(bossCanvas,0,0);
 
-            let bossBeat = false
             canvas.onclick = function(){
                 remClick();
-                imageEnm.src = "./boss/cpt" + (bossIndex+1) + "/q" + qNum + ".png";
+                imageEnm.src = "./boss/cpt" + (bossIndex + 1) + "/q" + qNum + ".png";
 
                 imageEnm.onload = function(){
                     bossCtx.drawImage(imageEnm,0,0,canvas.width,canvas.height);
                     let choiceList = [ //[x座標始点, y座標始点, x座標終点, y座標終点]
-                                        [20,                  canvas.height/2 + 10,     canvas.width/2 -40, canvas.height/4 - 20], //選択肢1
-                                        [canvas.width/2 + 10, canvas.height/2 + 10,     canvas.width/2 -40, canvas.height/4 - 20], //選択肢2
-                                        [20,                  canvas.height/4 * 3 + 10, canvas.width/2 -40, canvas.height/4 - 20], //選択肢3
-                                        [canvas.width/2 + 10, canvas.height/4 * 3 + 10, canvas.width/2 -40, canvas.height/4 - 20]  //選択肢4
+                                        [canvas.width * 0.02, canvas.height * 0.7 , canvas.width * 0.45, canvas.height * 0.1], //選択肢1
+                                        [canvas.width * 0.53, canvas.height * 0.7 , canvas.width * 0.45, canvas.height * 0.1], //選択肢2
+                                        [canvas.width * 0.02, canvas.height * 0.85, canvas.width * 0.45, canvas.height * 0.1], //選択肢3
+                                        [canvas.width * 0.53, canvas.height * 0.85, canvas.width * 0.45, canvas.height * 0.1]  //選択肢4
                                     ];
+                    /*
                     bossCtx.fillStyle = "rgb(0,0,0)";
                     bossCtx.fillRect(choiceList[0][0],choiceList[0][1],choiceList[0][2],choiceList[0][3]);
                     bossCtx.fillRect(choiceList[1][0],choiceList[1][1],choiceList[1][2],choiceList[1][3]);
                     bossCtx.fillRect(choiceList[2][0],choiceList[2][1],choiceList[2][2],choiceList[2][3]);
                     bossCtx.fillRect(choiceList[3][0],choiceList[3][1],choiceList[3][2],choiceList[3][3]);
+                    */
                     ctx.drawImage(bossCanvas,0,0);
 
                     canvas.onclick = function(){;
@@ -777,15 +906,99 @@ async function bossMain(){
                                 choice = 4
                             }
                             
-                            if(choice == bossQuizAns[bossIndex][qNum]){
+                            if(choice == bossQuizAns[bossIndex][qNum-1]){
                                 console.log("seikai");
-                                clearedCpt[bossIndex] = 1;
-                                fillCanvas(bossCanvas);
-                                returnTitle();
+                                clearedCpt[bossIndex]++;
+
+                                if(clearedCpt[clearedCpt.length-1]==4){
+                                    imageEnm.src = "./src/boss" + bossIndex + ".PNG"
+                                    imageEnm.onload = function(){
+                                        drawBG(bossCanvas);
+
+                                        bossCtx.drawImage(imageEnm,canvas.width/4,70,canvas.width/2,canvas.width/2);
+                            
+                                        bossCtx.fillStyle="rgb(100,100,200)";
+                                        bossCtx.fillRect(10,10,canvas.width-20,100);
+                            
+                                        bossCtx.fillStyle = "rgb(0,0,0)";
+                                        bossCtx.font = "italic bold 30px sans-serif";
+                                        let msg = "君はすべての力を得たようだ。これからも精進するといい。"
+                                        let fontWidth = bossCtx.measureText(msg).width;
+                                        bossCtx.fillText(msg,(canvas.width-fontWidth)/2,60);
+                            
+                                        ctx.drawImage(bossCanvas,0,0);
+                                        canvas.onclick = function(){
+                                            title();
+                                        }
+                                    }
+
+                                }else if(clearedCpt[bossIndex]==4){
+                                    imageEnm.src = "./src/boss" + bossIndex + ".PNG"
+                                    imageEnm.onload = function(){
+                                        drawBG(bossCanvas);
+
+                                        bossCtx.drawImage(imageEnm,canvas.width/4,70,canvas.width/2,canvas.width/2);
+                            
+                                        bossCtx.fillStyle="rgb(100,100,200)";
+                                        bossCtx.fillRect(10,10,canvas.width-20,100);
+                            
+                                        bossCtx.fillStyle = "rgb(0,0,0)";
+                                        bossCtx.font = "italic bold 30px sans-serif";
+                                        let msg = "全問正解だ・・・さらに奥へ進むといい。"
+                                        let fontWidth = bossCtx.measureText(msg).width;
+                                        bossCtx.fillText(msg,(canvas.width-fontWidth)/2,60);
+                            
+                                        ctx.drawImage(bossCanvas,0,0);
+                                        canvas.onclick = function(){
+                                            walk();
+                                        }
+                                    }
+                                }else{
+                                    imageEnm.src = "./src/boss" + bossIndex + ".PNG"
+                                    imageEnm.onload = function(){
+                                        drawBG(bossCanvas);
+
+                                        bossCtx.drawImage(imageEnm,canvas.width/4,70,canvas.width/2,canvas.width/2);
+                            
+                                        bossCtx.fillStyle="rgb(100,100,200)";
+                                        bossCtx.fillRect(10,10,canvas.width-20,100);
+                            
+                                        bossCtx.fillStyle = "rgb(0,0,0)";
+                                        bossCtx.font = "italic bold 30px sans-serif";
+                                        let msg = "すばらしい、よく解けたな。では次はどうかな？"
+                                        let fontWidth = bossCtx.measureText(msg).width;
+                                        bossCtx.fillText(msg,(canvas.width-fontWidth)/2,60);
+                            
+                                        ctx.drawImage(bossCanvas,0,0);
+                                        canvas.onclick = function(){
+                                            bossMain();
+                                        } ;
+                                    }
+                                }
                             }else{
-                                console.log("huseikai");
-                                fillCanvas(bossCanvas);
-                                returnTitle();
+                                imageEnm.src = "./src/boss" + bossIndex + ".PNG"
+                                imageEnm.onload = function(){
+                                    drawBG(bossCanvas);
+
+                                    bossCtx.drawImage(imageEnm,canvas.width/4,70,canvas.width/2,canvas.width/2);
+                        
+                                    bossCtx.fillStyle="rgb(100,100,200)";
+                                    bossCtx.fillRect(10,10,canvas.width-20,100);
+                        
+                                    bossCtx.fillStyle = "rgb(0,0,0)";
+                                    bossCtx.font = "italic bold 30px sans-serif";
+                                    let msg = "まだまだだ。もう一度巻物をじっくり読んでくることだな。"
+                                    let fontWidth = bossCtx.measureText(msg).width;
+                                    bossCtx.fillText(msg,(canvas.width-fontWidth)/2,60);
+                        
+                                    ctx.drawImage(bossCanvas,0,0);
+                                    canvas.onclick = function(){
+                                        remClick();
+                                        console.log("huseikai");
+                                        fillCanvas(bossCanvas);
+                                        returnTitle();
+                                    }
+                                }
                             };
                         };
                     };
@@ -813,7 +1026,7 @@ function openScroll(){
     remClick();
     console.log("Load imgBoxClose")
     drawBG(scrollCanvas);
-    scrollCtx.drawImage(imageBoxClose, (canvas.width - imageBoxClose.width) / 2, (canvas.height - imageBoxClose.height) / 2);
+    scrollCtx.drawImage(imageBoxClose, (canvas.width - imageBoxClose.width) / 2,  (canvas.height - imageBoxOpen.height) - (canvas.height/20));
 
     scrollCtx.fillStyle = "rgb(200,200,0)";
     scrollCtx.font = "italic bold 60px sans-serif";
@@ -842,16 +1055,16 @@ function openBox(){
     scrollCtx.font = "italic bold 60px sans-serif";
     let msg = "巻物ゲット！"
     let fontWidth = scrollCtx.measureText(msg).width;
-    scrollCtx.fillText(msg,(canvas.width-fontWidth)/2,(canvas.height/2)-200);
+    scrollCtx.fillText(msg,(canvas.width-fontWidth)/2,canvas.height/5);
 
 
     msg = "タッチして巻物を読んでみよう！"
     scrollCtx.fillStyle = "rgb(0,100,200)";
     scrollCtx.font = "bold 40px sans-serif";
     fontWidth = scrollCtx.measureText(msg).width;
-    scrollCtx.fillText(msg,(canvas.width-fontWidth)/2,(canvas.height/2)-100);
+    scrollCtx.fillText(msg,(canvas.width-fontWidth)/2,canvas.height/3);
 
-    scrollCtx.drawImage(imageBoxOpen, (canvas.width - imageBoxClose.width) / 2, (canvas.height - imageBoxClose.height) / 2);
+    scrollCtx.drawImage(imageBoxOpen, (canvas.width - imageBoxOpen.width) / 2, (canvas.height - imageBoxOpen.height) - (canvas.height/20));
     ctx.drawImage(scrollCanvas, 0, 0);
     canvas.onclick = scrollSet;
 }
@@ -879,7 +1092,7 @@ function scrollSet(){
             console.log(scrollGet);
             scrolls[i]++;
 
-            if(clearedCpt[i]==0 && scrolls[i]==scrollMax[i]){
+            if(clearedCpt[i]<4 && scrolls[i]==scrollMax[i]){
                 console.log("THIS IS FIRST CLEAR!")
                 console.log(clearedCpt)
                 console.log(scrolls);
@@ -895,8 +1108,10 @@ function scrollSet(){
             console.log(stage);
 
             let b = document.getElementById("st" + stage);
-            scrollCtx.drawImage(b,30 + (imagePlainScroll.width/15),30 + (imagePlainScroll.height/15),
-                                  canvas.width - 30 - ((imagePlainScroll.width/15) * 2),canvas.height - 30 - ((imagePlainScroll.height/15) * 2));
+            scrollCtx.drawImage(b,30 + (imagePlainScroll.width/5),
+                                  30 + (imagePlainScroll.height/5),
+                                  canvas.width - 30 - ((imagePlainScroll.width/5) * 2),
+                                  canvas.height - 30 - ((imagePlainScroll.height/5) * 2));
 
             break;
         }
@@ -907,11 +1122,8 @@ function scrollSet(){
     console.log(scrollMax);
 
     canvas.onclick = function(){
-        if(scrolls[scrolls.length-1]==scrollMax[scrollMax.length-1]){
-            alert("Game Completed!! Congrats!!");
-            returnTitle();
-        }else if(stgClrBln){
-            bossHitCheck();
+        if(stgClrBln){
+            bossHitCheck(true);
         }else{
             console.log("go to walk")
             walk();
@@ -973,29 +1185,147 @@ function showScroll(){
             let scrhit10 = hitCheck(pointSet[9][0],pointSet[9][1],pointSet[9][2],pointSet[9][3])
             let scrhitRet = hitCheck(pointSet[10][0],pointSet[10][1],pointSet[10][2],pointSet[10][3])
             if(scrhit1){
-                console.log("HIT1")
+                stgScrShow(1);
             }else if(scrhit2){
-                console.log("HIT2")
+                stgScrShow(2);
             }else if(scrhit3){
-                console.log("HIT3")
+                stgScrShow(3);
             }else if(scrhit4){
-                console.log("HIT4")
+                stgScrShow(4);
             }else if(scrhit5){
-                console.log("HIT5")
+                stgScrShow(5);
             }else if(scrhit6){
-                console.log("HIT6")
+                stgScrShow(6);
             }else if(scrhit7){
-                console.log("HIT7")
+                stgScrShow(7);
             }else if(scrhit8){
-                console.log("HIT8")
+                stgScrShow(8);
             }else if(scrhit9){
-                console.log("HIT9")
+                stgScrShow(9);
             }else if(scrhit10){
-                console.log("HIT10")
+                stgScrShow(10);
             }else if(scrhitRet){
                 returnTitle();
             }
         }
+    }
+}
+
+function stgScrShow(stg){
+    remClick();
+    drawBG(scrollCanvas);
+    let stgMsg ="";
+    stg = stg - 1;
+    
+    let pointSet = [ //[x座標始点, y座標始点, x座標横幅, y座標立幅, 表示内容]
+        [10,                        10,                         canvas.width/4 - 60, canvas.height / 4 - 60, "ステージ1"], //1
+        [canvas.width / 4 * 1 + 10, 10,                         canvas.width/4 - 60, canvas.height / 4 - 60, "ステージ2"], //2
+        [canvas.width / 4 * 2 + 10, 10,                         canvas.width/4 - 60, canvas.height / 4 - 60, "ステージ3"], //3
+        [canvas.width / 4 * 3 + 10, 10,                         canvas.width/4 - 60, canvas.height / 4 - 60, "ステージ4"], //4
+        [10,                        canvas.height / 4 + 10,     canvas.width/4 - 60, canvas.height / 4 - 60, "ステージ5"], //5
+        [canvas.width / 4 * 1 + 10, canvas.height / 4 + 10,     canvas.width/4 - 60, canvas.height / 4 - 60, "ステージ6"], //6
+        [canvas.width / 4 * 2 + 10, canvas.height / 4 + 10,     canvas.width/4 - 60, canvas.height / 4 - 60, "ステージ7"], //7
+        [canvas.width / 4 * 3 + 10, canvas.height / 4 + 10,     canvas.width/4 - 60, canvas.height / 4 - 60, "ステージ8"], //8
+        [canvas.width / 10,         canvas.height - 60, canvas.width - ((canvas.width / 10) * 2), 50, "戻る"]  //戻る
+    ]
+
+    for(i=0;i<scrollGet.length;i++){
+        let tempScr = scrollGet[i];
+
+        for(j=0;j<tempScr.length;j++){
+            console.log("set btn : " + j)
+            console.log(scrollGet[stg][j])
+            scrollCtx.fillStyle = "rgb(100,150,200)";
+            scrollCtx.fillRect(pointSet[j][0],pointSet[j][1],pointSet[j][2],pointSet[j][3]);
+
+            if(scrollGet[stg][j]==1){
+                stgMsg = pointSet[j][4]; //ボタンに表示するメッセージ
+            }else{
+                stgMsg = "未取得"; //ボタンに表示するメッセージ
+            }
+
+            scrollCtx.fillStyle = "rgb(0,0,0)";
+            scrollCtx.font = "20px sans-selif";
+            let fontWidth = scrollCtx.measureText(stgMsg).width;
+            scrollCtx.fillText(stgMsg, pointSet[j][0] + (pointSet[j][2]- fontWidth) / 2, pointSet[j][1] + (pointSet[j][3]/2)+10);
+        }
+    }
+
+    //戻るボタンだけ別処理
+    scrollCtx.fillStyle = "rgb(100,150,200)";
+    scrollCtx.fillRect(pointSet[8][0],pointSet[8][1],pointSet[8][2],pointSet[8][3]);
+
+    scrollCtx.fillStyle = "rgb(0,0,0)";
+    scrollCtx.font = "20px sans-selif";
+    stgMsg = pointSet[8][4]; //ボタンに表示するメッセージ
+    let fontWidth = scrollCtx.measureText(stgMsg).width;
+    scrollCtx.fillText(stgMsg, pointSet[8][0] + (pointSet[8][2]- fontWidth) / 2, pointSet[8][1] + (pointSet[8][3]/2)+10);
+
+
+
+    ctx.drawImage(scrollCanvas,0,0);
+
+    let thisStg = 0;
+
+    canvas.onclick = function(){
+        console.log("scr click")
+        let scrhit1 = hitCheck(pointSet[0][0],pointSet[0][1],pointSet[0][2],pointSet[0][3])
+        let scrhit2 = hitCheck(pointSet[1][0],pointSet[1][1],pointSet[1][2],pointSet[1][3])
+        let scrhit3 = hitCheck(pointSet[2][0],pointSet[2][1],pointSet[2][2],pointSet[2][3])
+        let scrhit4 = hitCheck(pointSet[3][0],pointSet[3][1],pointSet[3][2],pointSet[3][3])
+        let scrhit5 = hitCheck(pointSet[4][0],pointSet[4][1],pointSet[4][2],pointSet[4][3])
+        let scrhit6 = hitCheck(pointSet[5][0],pointSet[5][1],pointSet[5][2],pointSet[5][3])
+        let scrhit7 = hitCheck(pointSet[6][0],pointSet[6][1],pointSet[6][2],pointSet[6][3])
+        let scrhit8 = hitCheck(pointSet[7][0],pointSet[7][1],pointSet[7][2],pointSet[7][3])
+        let scrhitRet = hitCheck(pointSet[8][0],pointSet[8][1],pointSet[8][2],pointSet[8][3])
+        if(scrhit1){
+            thisStg = 1;
+        }else if(scrhit2){
+            thisStg = 2;
+        }else if(scrhit3){
+            thisStg = 3;
+        }else if(scrhit4){
+            thisStg = 4;
+        }else if(scrhit5){
+            thisStg = 5;
+        }else if(scrhit6){
+            thisStg = 6;
+        }else if(scrhit7){
+            thisStg = 7;
+        }else if(scrhit8){
+            thisStg = 8;
+        }else if(scrhitRet){
+            showScroll();
+        }
+        console.log(stg);
+        console.log(scrollMax[stg]);
+        console.log(thisStg);
+        if(scrollMax[stg] >= thisStg-1 && scrollGet[stg][thisStg] == 1){
+            stg = stg + 1;
+            slideShow(stg,thisStg);
+        }
+
+    }
+}
+
+function slideShow(cpt,stg){
+    remClick();
+    drawBG(scrollCanvas);
+    scrollCtx.drawImage(imagePlainScroll,30,30,canvas.width-30, canvas.height-30);
+    stage = cpt + "-" + stg;
+    console.log(stage);
+
+    let b = document.getElementById("st" + stage);
+    scrollCtx.drawImage(b,30 + (imagePlainScroll.width/5),
+                        30 + (imagePlainScroll.height/5),
+                        canvas.width - 30 - ((imagePlainScroll.width/5) * 2),
+                        canvas.height - 30 - ((imagePlainScroll.height/5) * 2));
+    
+    ctx.drawImage(scrollCanvas,0,0);
+
+    canvas.onclick = function(){
+        remClick();
+        stgScrShow(cpt)
     }
 }
 

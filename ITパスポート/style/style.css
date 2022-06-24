@@ -1,0 +1,42 @@
+#MainC{
+    background: green;
+}
+
+#btnGroup{
+    display: flex;
+}
+
+#chpScroll{
+    width:100%;
+    border:solid 1px;
+}
+
+#chpScroll table{
+    width:100%;
+    height:100%;
+    background-image: url("../src/title.PNG");
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+#chpScroll td{
+    text-align: center;
+    height:100px;
+}
+
+#showScreen{
+    display:block;
+}
+
+#chpScroll, #scrollShow, #scrList{
+    display:none;
+    text-align: center;
+}
+
+.stageList{
+    display: none;
+}
+
+.BossQ{
+    display:none;
+}
